@@ -1,0 +1,21 @@
+.rjs-titlebutton {
+    display: block;
+    position: relative;
+    z-index: 2;
+    width: 147px;
+    height: 41px;
+    cursor: pointer;
+
+    .rjs-titlebutton-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 3;
+    }
+
+    .rjs-titlebutton-text {
+        position: relative;
+        z-index: 3;
+        top: 12px;
+    }
+}

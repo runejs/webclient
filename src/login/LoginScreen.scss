@@ -1,0 +1,92 @@
+.rjs-login {
+    position: relative;
+    width: 765px;
+    height: 503px;
+
+    .rjs-login-background-left, .rjs-login-background-right {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+    }
+
+    .rjs-login-background-right {
+        right: 0;
+        transform: scaleX(-1);
+    }
+
+    .rjs-logo {
+        position: relative;
+        z-index: 1;
+        margin: 0 auto;
+        top: 18px;
+        display: block;
+    }
+
+    .rjs-titlebox-bg {
+        position: absolute;
+        z-index: 1;
+        top: 171px;
+        left: 202px;
+        width: 360px;
+        height: 200px;
+    }
+
+    .rjs-titlebox {
+        position: absolute;
+        z-index: 2;
+        top: 171px;
+        left: 202px;
+        width: 360px;
+        height: 200px;
+        display: block;
+        box-sizing: border-box;
+        padding-top: 30px;
+
+        &.rjs-titlebox-loginform {
+            padding-top: 45px;
+
+            form {
+                margin: 25px auto 20px;
+
+                .rjs-login-field {
+                    display: grid;
+                    grid-template-columns: auto auto;
+                    grid-column-gap: 5px;
+                    justify-content: center;
+
+                    .rjs-login-input {
+                        width: 100px;
+                    }
+
+                    + .rjs-login-field {
+                        margin-top: 1px;
+                    }
+                }
+            }
+
+            .rjs-buttons {
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: auto auto;
+                grid-column-gap: 13px;
+                justify-content: center;
+            }
+        }
+
+        &.rjs-titlebox-welcome {
+            padding-top: 30px;
+
+            .rjs-title {
+                margin-bottom: 10px;
+            }
+
+            .rjs-info-text {
+                margin-bottom: -1px;
+            }
+
+            .rjs-button-welcome {
+                margin: 20px auto 0;
+            }
+        }
+    }
+}

@@ -1,26 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from 'react';
+import './App.scss';
+import { store, StoreContext, StoreState } from './store';
+import LoginScreen from './login/LoginScreen';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = () => {
+    const [ storeState, setStoreState ] = useState<StoreState>({});
+    const [ screen, setScreen ] = useState<JSX.Element | undefined>(undefined);
+
+    useEffect(() => {
+        const dataLoader = async () => {
+            const archiveConfig = await store.getArchiveConfig();
+            const fonts = await store.loadFonts();
+
+            const state = {
+                archiveConfig,
+                fontsLoaded: true,
+                fonts,
+            };
+
+            setStoreState(state);
+        };
+
+        dataLoader().catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        if (storeState.fontsLoaded) {
+            console.log('Fonts Loaded');
+            setScreen(<LoginScreen />);
+        }
+    }, [ storeState ]);
+
+    return (
+        <StoreContext.Provider value={storeState}>
+            <div className="client-app">
+                <div className="rjs-header">
+                    <img className="rjs-logo" src="https://i.imgur.com/QSXNzwC.png" alt="RuneJS"/>
+
+                    <a href="https://discord.gg/5P74nSh" target="_blank" rel="noreferrer">
+                        <img
+                            src="https://img.shields.io/discord/678751302297059336?label=RuneJS%20Discord&amp;logo=discord"
+                            alt="RuneJS Discord"/>
+                    </a>
+                </div>
+
+                {screen}
+            </div>
+        </StoreContext.Provider>
+    );
+};
 
 export default App;

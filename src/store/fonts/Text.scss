@@ -1,0 +1,18 @@
+canvas.rjs-text {
+    display: block;
+    position: relative;
+    z-index: 3;
+
+    &.rjs-center {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    &.rjs-left {
+        left: 0;
+    }
+
+    &.rjs-right {
+        right: 0;
+    }
+}
