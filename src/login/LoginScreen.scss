@@ -47,21 +47,6 @@
 
             form {
                 margin: 25px auto 20px;
-
-                .rjs-login-field {
-                    display: grid;
-                    grid-template-columns: auto auto;
-                    grid-column-gap: 5px;
-                    justify-content: center;
-
-                    .rjs-login-input {
-                        width: 100px;
-                    }
-
-                    + .rjs-login-field {
-                        margin-top: 1px;
-                    }
-                }
             }
 
             .rjs-buttons {

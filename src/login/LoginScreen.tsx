@@ -4,6 +4,7 @@ import { store } from '../store';
 import Sprite from '../store/sprites/Sprite';
 import TitleButton from './TitleButton';
 import Text from '../store/fonts/Text';
+import LoginField from './LoginField';
 
 
 export enum LoginState {
@@ -40,23 +41,8 @@ const LoginScreen = () => {
                 </Text>
 
                 <form>
-                    <div className="rjs-login-field">
-                        <Text font="b12_full" color={16777215} align="center"
-                              dropShadow className="rjs-form-label">
-                            Username:
-                        </Text>
-
-                        <div className="rjs-login-input"></div>
-                    </div>
-
-                    <div className="rjs-login-field">
-                        <Text font="b12_full" color={16777215} align="center"
-                              dropShadow className="rjs-form-label">
-                            Password:
-                        </Text>
-
-                        <div className="rjs-login-input"></div>
-                    </div>
+                    <LoginField label="Username:" type="text" maxLength={12} />
+                    <LoginField label="Password:" type="password" maxLength={15} />
                 </form>
 
                 <div className="rjs-buttons">
@@ -79,9 +65,9 @@ const LoginScreen = () => {
                     Welcome to RuneJS
                 </Text>
 
-                {titleScreenText.map(text => (
+                {titleScreenText.map((text, i) => (
                     <Text font="b12_full" color={16777215} align="center"
-                          dropShadow className="rjs-info-text">
+                          dropShadow className="rjs-info-text" key={i}>
                         { text }
                     </Text>
                 ))}

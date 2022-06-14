@@ -1,0 +1,37 @@
+@keyframes blinker {
+    from,
+    49.9% {
+        opacity: 0;
+    }
+    50%,
+    to {
+        opacity: 1;
+    }
+}
+
+.rjs-login-field {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-column-gap: 5px;
+    justify-content: center;
+
+    .rjs-login-input {
+        width: 100px;
+        cursor: text;
+        display: flex;
+        align-items: baseline;
+        height: 13px;
+
+        .rjs-form-caret {
+            animation: blinker 0.85s linear infinite;
+        }
+
+        .rjs-field-input {
+        }
+    }
+
+    + .rjs-login-field {
+        margin-top: 1px;
+        margin-left: 2px;
+    }
+}
