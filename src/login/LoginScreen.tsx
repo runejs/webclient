@@ -4,7 +4,7 @@ import { store } from '../store';
 import Sprite from '../store/sprites/Sprite';
 import TitleButton from './TitleButton';
 import Text from '../store/fonts/Text';
-import LoginField from './LoginField';
+import TextField from '../common/text-field/TextField';
 
 
 export enum LoginState {
@@ -22,6 +22,10 @@ const LoginScreen = () => {
         'with any username and password to',
         'create a character.',
     ];
+
+    const submitCredentials = () => {
+        console.log('credentials submitted');
+    };
 
     useEffect(() => {
         const titleBgFetcher = async () =>
@@ -41,8 +45,11 @@ const LoginScreen = () => {
                 </Text>
 
                 <form>
-                    <LoginField label="Username:" type="text" maxLength={12} />
-                    <LoginField label="Password:" type="password" maxLength={15} />
+                    <TextField label="Username:" type="text" maxLength={12}
+                               className="rjs-login-field" autoFocus tabIndex={1} />
+
+                    <TextField label="Password:" type="password" maxLength={20}
+                               className="rjs-login-field" tabIndex={2} onEnter={submitCredentials} />
                 </form>
 
                 <div className="rjs-buttons">

@@ -9,29 +9,26 @@
     }
 }
 
-.rjs-login-field {
+.rjs-text-field {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto 110px;
     grid-column-gap: 5px;
     justify-content: center;
+    outline: none;
+    user-select: none;
 
-    .rjs-login-input {
-        width: 100px;
+    .rjs-input-container {
+        width: 160px;
         cursor: text;
         display: flex;
-        align-items: baseline;
+        align-items: flex-end;
         height: 13px;
 
-        .rjs-form-caret {
+        .rjs-caret {
             animation: blinker 0.85s linear infinite;
         }
 
-        .rjs-field-input {
+        .rjs-input {
         }
-    }
-
-    + .rjs-login-field {
-        margin-top: 1px;
-        margin-left: 2px;
     }
 }

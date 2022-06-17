@@ -37,7 +37,7 @@ const App = () => {
                 <div className="rjs-header">
                     <img className="rjs-logo" src="https://i.imgur.com/QSXNzwC.png" alt="RuneJS"/>
 
-                    <a href="https://discord.gg/5P74nSh" target="_blank" rel="noreferrer">
+                    <a href="https://discord.gg/5P74nSh" target="_blank" rel="noreferrer" tabIndex={-1}>
                         <img
                             src="https://img.shields.io/discord/678751302297059336?label=RuneJS%20Discord&amp;logo=discord"
                             alt="RuneJS Discord"/>

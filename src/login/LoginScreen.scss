@@ -47,6 +47,11 @@
 
             form {
                 margin: 25px auto 20px;
+
+                .rjs-login-field + .rjs-login-field {
+                    margin-top: 1px;
+                    margin-left: 2px;
+                }
             }
 
             .rjs-buttons {
