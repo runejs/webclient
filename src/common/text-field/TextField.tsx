@@ -40,15 +40,19 @@ const TextField = (props: TextFieldProps) => {
         }
     }
 
+    const updateValue = (newValue: string) => {
+        setValue(newValue);
+        setDisplay(props.type === 'password' ?
+            new Array(newValue.length).fill('*').join('') : newValue);
+    };
+
     const handleInput = (event) => {
         if (focused) {
             if (event.keyCode === 8) {
                 // Backspace
                 if(value?.length) {
                     const newValue = value.slice(0, value.length - 1);
-                    setValue(newValue);
-                    setDisplay(props.type === 'password' ?
-                        new Array(newValue.length).fill('*').join('') : newValue);
+                    updateValue(newValue);
                 }
             } else if (event.keyCode === 13) {
                 // Enter
@@ -57,9 +61,7 @@ const TextField = (props: TextFieldProps) => {
             } else if(validCharacters.indexOf(event.key) !== -1) {
                 if (!props.maxLength || value.length < props.maxLength) {
                     const newValue = value + (event.shiftKey ? event.key.toUpperCase() : event.key);
-                    setValue(newValue);
-                    setDisplay(props.type === 'password' ?
-                        new Array(newValue.length).fill('*').join('') : newValue);
+                    updateValue(newValue);
                 }
             } else {
                 console.warn(`Unhandled character: ${event.keyCode} ${event.key}`);
@@ -82,6 +84,10 @@ const TextField = (props: TextFieldProps) => {
     useEffect(() => {
         if (props.autoFocus) {
             setFocused(true);
+        }
+
+        if (props.value?.length) {
+            updateValue(props.value);
         }
     }, []);
 

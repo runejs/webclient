@@ -6,6 +6,8 @@ import { ByteBuffer } from '@runejs/common';
 import { gunzipSync } from 'browserify-zlib';
 import { Font, fontNames } from './fonts/font';
 import { createContext, useContext } from 'react';
+import { Rs2Model } from './models/rs2-model';
+import { Rs2ModelTranscoder } from './models/rs2-model.transcoder';
 
 
 export enum FileCompression {
@@ -128,6 +130,10 @@ export class Store {
         const fileData = Buffer.from(response.data);
         this.files.get(archiveIndex).set(group, fileData);
         return fileData;
+    }
+
+    async getModel(modelId: number): Promise<Rs2Model> {
+        return await Rs2ModelTranscoder.getModel(modelId);
     }
 
     async getSprite(spriteName: string, spriteIndex: number): Promise<SpriteState> {

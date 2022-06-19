@@ -1,0 +1,86 @@
+.rjs-game-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+
+    .rjs-gui {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+
+        .rjs-gui-sprite {
+            position: absolute;
+            z-index: 1;
+        }
+
+        #backtop1 {
+            top: 0;
+            left: 0;
+        }
+        #backbase1 {
+            bottom: 0;
+            left: 0;
+        }
+        #backbase2 {
+            bottom: 0;
+            right: 0;
+        }
+        #backhmid1 {
+            top: 160px;
+            right: 0;
+        }
+        #backhmid2 {
+            bottom: 146px;
+            left: 0;
+        }
+        #backleft1 {
+            top: 4px;
+            left: 0;
+        }
+        #backleft2 {
+            bottom: 50px;
+            left: 0;
+        }
+        #backright1 {
+            top: 4px;
+            right: 0;
+        }
+        #backright2 {
+            bottom: 37px;
+            right: 0;
+        }
+        #backvmid1 {
+            top: 4px;
+            right: 215px;
+        }
+        #backvmid2 {
+            bottom: 165px;
+            right: 212px;
+        }
+        #backvmid3 {
+            bottom: 37px;
+            right: 212px;
+        }
+        #compass {
+            top: -5px;
+            right: 173px;
+            z-index: 0;
+        }
+        #mapback {
+            top: 4px;
+            right: 43px;
+        }
+        #chatback {
+            bottom: 50px;
+            left: 17px;
+        }
+        #invback {
+            bottom: 37px;
+            right: 22px;
+        }
+    }
+}

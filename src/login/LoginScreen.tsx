@@ -12,9 +12,15 @@ export enum LoginState {
     LOGIN_FORM = 1,
 }
 
-const LoginScreen = () => {
+export interface LoginScreenProps {
+    onLogin: (username: string, password: string) => void;
+}
+
+const LoginScreen = (props: LoginScreenProps) => {
     const [ loginBackground, setLoginBackground ] = useState<string>('');
     const [ loginState, setLoginState ] = useState(LoginState.WELCOME);
+    const [ username, setUsername ] = useState<string>('Kikorono');
+    const [ password, setPassword ] = useState<string>('aaaaa');
 
     const titleScreenText = [
         'An account is not required to play',
@@ -24,7 +30,7 @@ const LoginScreen = () => {
     ];
 
     const submitCredentials = () => {
-        console.log('credentials submitted');
+        props.onLogin(username, password);
     };
 
     useEffect(() => {
@@ -46,14 +52,17 @@ const LoginScreen = () => {
 
                 <form>
                     <TextField label="Username:" type="text" maxLength={12}
-                               className="rjs-login-field" autoFocus tabIndex={1} />
+                               className="rjs-login-field" autoFocus tabIndex={1}
+                               value={username} valueChange={setUsername} />
 
                     <TextField label="Password:" type="password" maxLength={20}
-                               className="rjs-login-field" tabIndex={2} onEnter={submitCredentials} />
+                               className="rjs-login-field" tabIndex={2} onEnter={submitCredentials}
+                               value={password} valueChange={setPassword} />
                 </form>
 
                 <div className="rjs-buttons">
-                    <TitleButton id="title-login-button" className="rjs-button-login">
+                    <TitleButton id="title-login-button" className="rjs-button-login"
+                                 onClick={submitCredentials}>
                         Login
                     </TitleButton>
 

@@ -1,0 +1,30 @@
+.rjs-game-view {
+    background-color: black;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 512px;
+    height: 334px;
+
+    .rjs-model {
+        position: absolute;
+        width: 512px;
+        height: 334px;
+        top: 0;
+        left: 0;
+    }
+
+    .rjs-game-view-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .rjs-loading-text {
+        position: relative;
+        top: 4px + calc(334px / 2);
+        margin: 0 auto;
+    }
+}
