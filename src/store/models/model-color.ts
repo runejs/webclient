@@ -117,7 +117,7 @@ export class ModelColor {
     }
 
     static method816(faceColor: number, arg1: number, faceType: number): number {
-        if ((faceType & 0x2) == 2) {
+        if ((faceType & 0x2) === 2) {
             if (arg1 < 0) {
                 arg1 = 0;
             } else if (arg1 > 127) {
@@ -135,6 +135,7 @@ export class ModelColor {
         return (faceColor & 0xff80) + arg1;
     }
 
+    // ?
     static method709(arg0: number, arg1: number): number {
         arg1 = (127 - arg1) * (arg0 & 0x7f) >> 7;
         if (arg1 < 2) {

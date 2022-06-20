@@ -7,7 +7,8 @@ import {
     Mesh, MeshBasicMaterial,
     PerspectiveCamera,
     Scene,
-    WebGLRenderer
+    WebGLRenderer,
+    AxesHelper
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Rs2Model } from './rs2-model';
@@ -15,7 +16,7 @@ import { ModelColor } from './model-color';
 
 export class ModelRenderer {
 
-    public static MODEL_SCALE = 0.025;
+    static MODEL_SCALE = 0.025;
     private static FACE_SHADED = 0;
     private static FACE_DEFAULT = 1;
 
@@ -53,15 +54,20 @@ export class ModelRenderer {
         this.camera = new PerspectiveCamera(
             75, 512 / 334, 0.1, 1000
         );
+        this.camera.position.x = 5;
+        this.camera.position.y = 5;
         this.camera.position.z = 5;
         this.scene.add(this.camera);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
-        const size = 15;
-        const divisions = 15;
-        const gridHelper = new GridHelper(size, divisions);
-        this.scene.add(gridHelper);
+        // const size = 15;
+        // const divisions = 15;
+        // const gridHelper = new GridHelper(size, divisions);
+        // this.scene.add(gridHelper);
+
+        const axis = new AxesHelper(200);
+        this.scene.add(axis);
     }
 
     removeRsModelMesh(): void {

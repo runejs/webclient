@@ -183,7 +183,7 @@ export class Rs2Model {
             i_62_ = ~~(i_62_ * 256 / i_65_);
             i_63_ = ~~(i_63_ * 256 / i_65_);
             i_64_ = ~~(i_64_ * 256 / i_65_);
-            if (!this.faceTypes || (this.faceTypes[i_52_] & 0x1) == 0) {
+            if (!this.faceTypes || (this.faceTypes[i_52_] & 0x1) === 0) {
                 let class46 = this.vertexNormals[faceA];
                 class46.x += i_62_;
                 class46.y += i_63_;
@@ -240,7 +240,7 @@ export class Rs2Model {
                 i_76_ = ~~(arg0 + (arg2 * normal.x + arg3 *
                     normal.y + arg4 * normal.z) / (arg1 * normal.magnitude));
                 this.faceColorsZ[i] = ModelColor.method816(faceColor, i_76_, 0);
-            } else if ((this.faceTypes[i] & 0x1) == 0) {
+            } else if ((this.faceTypes[i] & 0x1) === 0) {
                 const faceColor = this.faceColors[i];
                 const faceType = this.faceTypes[i];
                 let normal = this.vertexNormals[faceA];

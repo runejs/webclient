@@ -5,7 +5,7 @@ import { SpriteState, SpriteTranscoder } from './sprites/sprite-transcoder';
 import { ByteBuffer } from '@runejs/common';
 import { gunzipSync } from 'browserify-zlib';
 import { Font, fontNames } from './fonts/font';
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 import { Rs2Model } from './models/rs2-model';
 import { Rs2ModelTranscoder } from './models/rs2-model.transcoder';
 
@@ -127,7 +127,8 @@ export class Store {
           }
         );
 
-        const fileData = Buffer.from(response.data);
+        const compressedData = Buffer.from(response.data);
+        const fileData = gunzipSync(compressedData);
         this.files.get(archiveIndex).set(group, fileData);
         return fileData;
     }
