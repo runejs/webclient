@@ -8,7 +8,7 @@ import {
     PerspectiveCamera,
     Scene,
     WebGLRenderer,
-    AxesHelper
+    AxesHelper, DirectionalLight
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Rs2Model } from './rs2-model';
@@ -42,8 +42,8 @@ export class ModelRenderer {
         // create the WebGL renderer
         this.renderer = new WebGLRenderer({
             canvas: this.canvas,
-            alpha: true,
-            antialias: true
+            // alpha: true,
+            // antialias: true
         });
         this.renderer.setSize(512, 334);
 
@@ -54,9 +54,10 @@ export class ModelRenderer {
         this.camera = new PerspectiveCamera(
             75, 512 / 334, 0.1, 1000
         );
-        this.camera.position.x = 5;
-        this.camera.position.y = 5;
-        this.camera.position.z = 5;
+        this.camera.position.x = -60;
+        this.camera.position.y = 50;
+        this.camera.position.z = 0;
+
         this.scene.add(this.camera);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -91,11 +92,11 @@ export class ModelRenderer {
         const materials = new Array<Material>();
 
         // the default material
-        materials.push(new MeshBasicMaterial(<any>{
+        materials.push(new MeshBasicMaterial({
             side: DoubleSide,
             flatShading: true,
             vertexColors: true
-        }));
+        } as any));
 
         const vertices = [];
         const normals = [];

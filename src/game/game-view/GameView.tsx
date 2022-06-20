@@ -5,19 +5,10 @@ import { store } from '../../store';
 import { ModelRenderer } from '../../store/models/model-renderer';
 import { MapFileTranscoder } from '../../store/maps/map-file.transcoder';
 import {
-    BufferAttribute,
-    BufferGeometry,
-    DoubleSide,
-    EdgesGeometry,
-    LineBasicMaterial,
-    LineSegments,
-    Material,
+    BufferAttribute, Color, DirectionalLight, DoubleSide,
     Mesh,
-    MeshBasicMaterial,
-    MeshLambertMaterial,
-    MeshPhongMaterial, PlaneBufferGeometry,
-    PlaneGeometry,
-    WireframeGeometry
+    MeshBasicMaterial, MeshLambertMaterial, MeshPhongMaterial, MeshStandardMaterial,
+    PlaneBufferGeometry,
 } from 'three';
 
 
@@ -37,47 +28,47 @@ const GameView = () => {
             modelRenderer.createRsModelMesh(model1);
             modelRenderer.createRsModelMesh(model2);
 
-            // tutorial island center
+            // tutorial island center map
             const mapFile = await MapFileTranscoder.decode('m48_48');
 
-            console.log(mapFile.tiles.heights);
-
             const geometry = new PlaneBufferGeometry(64, 64, 63, 63);
-            // const geometry = new PlaneGeometry(64, 64, 63, 63);
-            // const geometry = new BufferGeometry();
 
-            geometry.rotateX( -Math.PI / 2);
-
-            const material = new MeshLambertMaterial({
-                color: '#57b2cd',
-                transparent: false,
-                wireframe: true,
-            });
+            const material = [new MeshPhongMaterial({
+                vertexColors: true,
+                side: DoubleSide,
+                // transparent: true,
+                // opacity: 0.7,
+                flatShading: true,
+                // color: new Color(165, 42, 42),
+                // wireframe: true,
+            })];
 
             const plane = new Mesh(geometry, material);
             plane.name = 'Terrain';
 
             const vertices = [];
             const colors = [];
+            const { heights } = mapFile.tiles;
+            const level = 0;
 
             for (let y = 0; y < 64; y++) {
                 for (let x = 0; x < 64; x++) {
-                    let height = mapFile.tiles.heights[0][x][y];
-                    if (height === undefined || height === null || isNaN(height)) {
+                    let height = heights[level][x][y];
+
+                    if(height === undefined || height === null || isNaN(height)) {
                         height = 0;
                     }
 
-                    colors.push(255);
-                    colors.push(255);
-                    colors.push(255);
-                    vertices.push(x * 64);
-                    vertices.push(-height);
-                    vertices.push(-(y * 64));
+                    colors.push(81, 92, 14);
+                    vertices.push(x * 64, -height / 2, -(y * 64));
                 }
             }
 
+            geometry.addGroup(0, vertices.length * 3, 0);
+
             plane.rotation.set(0,-Math.PI / 2,0);
-            plane.position.set(-54, 0, -54);
+            plane.position.set(-52, 0, -52);
+
             plane.geometry.setAttribute('position', new BufferAttribute(new Float32Array(vertices), 3));
             plane.geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3));
             plane.geometry.computeVertexNormals();
@@ -87,6 +78,10 @@ const GameView = () => {
             modelRenderer.scene.add(plane);
 
             modelRenderer.animate();
+
+            const light = new DirectionalLight(0xffffff, 0.0025);
+            light.position.set(-60, 50, 0);
+            modelRenderer.scene.add(light);
         };
 
         testRenderer().catch(console.error).finally(() => setLoading(false));
