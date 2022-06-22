@@ -18,9 +18,6 @@ const Model = (props: ModelProps) => {
 
     useEffect(() => {
         const modelRenderer = new ModelRenderer();
-        modelRenderer.createScene(canvasRef.current);
-        modelRenderer.animate();
-        modelRenderer.controls.listenToKeyEvents(document.body);
 
         const render = async () => {
             const model = await store.getModel(props.modelId);

@@ -2,17 +2,12 @@ import {
     BufferAttribute,
     BufferGeometry, Color,
     DoubleSide,
-    GridHelper,
     Material,
     Mesh, MeshBasicMaterial,
-    PerspectiveCamera,
-    Scene,
-    WebGLRenderer,
-    AxesHelper, DirectionalLight
 } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Rs2Model } from './rs2-model';
 import { ModelColor } from './model-color';
+import { game, Game } from '../../common/game/game';
 
 export class ModelRenderer {
 
@@ -20,56 +15,7 @@ export class ModelRenderer {
     private static FACE_SHADED = 0;
     private static FACE_DEFAULT = 1;
 
-    private canvas: HTMLCanvasElement;
-
-    renderer: WebGLRenderer;
-    camera: PerspectiveCamera;
-    controls: OrbitControls;
-    scene: Scene;
     rsModelMesh: Mesh | null = null;
-    frameId: number = null;
-
-    destroy(): void {
-        if (this.frameId != null) {
-            cancelAnimationFrame(this.frameId);
-        }
-    }
-
-    createScene(canvas: HTMLCanvasElement): void {
-        // The first step is to get the reference of the canvas element from our HTML document
-        this.canvas = canvas;
-
-        // create the WebGL renderer
-        this.renderer = new WebGLRenderer({
-            canvas: this.canvas,
-            // alpha: true,
-            // antialias: true
-        });
-        this.renderer.setSize(512, 334);
-
-        // create the scene
-        this.scene = new Scene();
-
-        // create the camera
-        this.camera = new PerspectiveCamera(
-            75, 512 / 334, 0.1, 1000
-        );
-        this.camera.position.x = -60;
-        this.camera.position.y = 50;
-        this.camera.position.z = 0;
-
-        this.scene.add(this.camera);
-
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
-        // const size = 15;
-        // const divisions = 15;
-        // const gridHelper = new GridHelper(size, divisions);
-        // this.scene.add(gridHelper);
-
-        const axis = new AxesHelper(200);
-        this.scene.add(axis);
-    }
 
     removeRsModelMesh(): void {
         if (!this.rsModelMesh) {
@@ -81,7 +27,7 @@ export class ModelRenderer {
             this.rsModelMesh.material.forEach(item => item.dispose());
         }
         this.rsModelMesh.geometry.dispose();
-        this.scene.remove(this.rsModelMesh);
+        game.scene.remove(this.rsModelMesh);
     }
 
     createRsModelMesh(model: Rs2Model): void {
@@ -215,7 +161,7 @@ export class ModelRenderer {
         mesh.scale.set(scale, scale, scale);
 
         this.rsModelMesh = mesh;
-        this.scene.add(mesh);
+        game.scene.add(mesh);
     }
 
     getMeshFromRsModel(model: Rs2Model): Mesh {
@@ -359,35 +305,5 @@ export class ModelRenderer {
         });
         return material;
     }*/
-
-    animate(): void {
-        if (document.readyState !== 'loading') {
-            this.render();
-        } else {
-            window.addEventListener('DOMContentLoaded', () => {
-                this.render();
-            });
-        }
-        window.addEventListener('resize', () => {
-            this.resize();
-        });
-    }
-
-    render(): void {
-        this.frameId = requestAnimationFrame(() => {
-            this.render();
-        });
-        this.renderer.render(this.scene, this.camera);
-    }
-
-    resize(): void {
-        const width = 512;
-        const height = 334;
-
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
-
-        this.renderer.setSize(width, height);
-    }
 
 }
