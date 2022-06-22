@@ -70,7 +70,7 @@ export class MapRenderer {
             side: DoubleSide,
             // transparent: true,
             // opacity: 0.7,
-            flatShading: true,
+            // flatShading: true,
             // color: new Color(165, 42, 42),
             // wireframe: true,
         })];
@@ -78,8 +78,8 @@ export class MapRenderer {
         this.planeMesh = new Mesh(this.geometry, this.materials);
         this.planeMesh.name = this.mapName;
 
-        let planeDrawX = 0; // -52;
-        let planeDrawY = 0; // -52;
+        let planeDrawX = -52;
+        let planeDrawY = 52;
 
         const drawOffsetX = (this.drawOffsetX * 100);
         const drawOffsetY = (this.drawOffsetY * 100);

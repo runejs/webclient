@@ -1,5 +1,13 @@
-import { AxesHelper, DirectionalLight, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import {
+    AxesHelper,
+    DirectionalLight,
+    HemisphereLight,
+    PerspectiveCamera,
+    Scene,
+    WebGLRenderer
+} from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
 
 export class Game {
 
@@ -10,10 +18,15 @@ export class Game {
     controls: OrbitControls;
     scene: Scene;
     frameId: number = null;
+    lightingInterval;
 
     destroy(): void {
         if (this.frameId != null) {
             cancelAnimationFrame(this.frameId);
+        }
+
+        if (this.lightingInterval) {
+            clearInterval(this.lightingInterval);
         }
     }
 
@@ -72,7 +85,7 @@ export class Game {
             75, 512 / 334, 0.1, 1000
         );
         this.camera.position.x = 0;
-        this.camera.position.y = 50;
+        this.camera.position.y = 100;
         this.camera.position.z = 0;
 
         this.scene.add(this.camera);
@@ -82,8 +95,27 @@ export class Game {
         const axis = new AxesHelper(200);
         this.scene.add(axis);
 
+        const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 0.002);
+        hemiLight.color.setHSL(0.6, 0.75, 0.5);
+        hemiLight.groundColor.setHSL(0.095, 0.5, 0.5);
+        hemiLight.position.set(0, 500, 0);
+        this.scene.add(hemiLight);
+
         const light = new DirectionalLight(0xffffff, 0.002);
-        light.position.set(-60, 50, 0);
+        // light.color.setHSL(0.6, 0.75, 0.5);
+        light.position.set( -1, 0.75, 1 );
+
+        /*this.lightingInterval = setInterval(() => {
+            let { y } = hemiLight.position;
+            y += 5;
+            if (y > 1000) {
+                y = 0;
+            }
+
+            hemiLight.position.setY(y);
+            this.camera.updateProjectionMatrix();
+        }, 600);*/
+
         game.scene.add(light);
 
         this.sceneCreated = true;

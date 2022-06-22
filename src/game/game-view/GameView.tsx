@@ -39,8 +39,8 @@ const GameView = () => {
             let renderedMaps: number = 0;
             let failedMaps: number = 0;
 
-            for (let x = -3; x <= 3; x++) {
-                for (let y = -3; y <= 3; y++) {
+            for (let x = -2; x <= 2; x++) {
+                for (let y = -2; y <= 2; y++) {
                     try {
                         const mapRenderer = new MapRenderer(50 + x, 50 + y, x, y);
                         await mapRenderer.loadMap();
