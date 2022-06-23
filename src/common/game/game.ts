@@ -2,8 +2,8 @@ import {
     AxesHelper,
     DirectionalLight,
     HemisphereLight,
-    PerspectiveCamera,
-    Scene,
+    PerspectiveCamera, Raycaster,
+    Scene, Vector2,
     WebGLRenderer
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -19,6 +19,8 @@ export class Game {
     scene: Scene;
     frameId: number = null;
     lightingInterval;
+    raycaster = new Raycaster();
+    pointer = new Vector2();
 
     destroy(): void {
         if (this.frameId != null) {
@@ -60,6 +62,17 @@ export class Game {
         this.renderer.setSize(width, height);
     }
 
+    onMouseClick(event) {
+        this.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.pointer.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+        const intersects = this.raycaster.intersectObjects(this.scene.children);
+
+        for (let i = 0; i < intersects.length; i++) {
+            console.log(intersects[i]);
+        }
+    }
+
     createScene(canvas: HTMLCanvasElement): void {
         if(this.sceneCreated) {
             return;
@@ -82,13 +95,17 @@ export class Game {
 
         // create the camera
         this.camera = new PerspectiveCamera(
-            75, 512 / 334, 0.1, 1000
+            75, 512 / 334, 1, 2000
         );
         this.camera.position.x = 0;
-        this.camera.position.y = 100;
+        this.camera.position.y = 50;
         this.camera.position.z = 0;
+        // this.camera.up.set( 0, 1, 0);
+        // this.camera.lookAt(400, 0, 400);
 
         this.scene.add(this.camera);
+
+        this.raycaster.setFromCamera(this.pointer, this.camera);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -101,9 +118,9 @@ export class Game {
         hemiLight.position.set(0, 500, 0);
         this.scene.add(hemiLight);
 
-        const light = new DirectionalLight(0xffffff, 0.002);
+        const light = new DirectionalLight(0xffffff, 0.001);
         // light.color.setHSL(0.6, 0.75, 0.5);
-        light.position.set( -1, 0.75, 1 );
+        light.position.set( -100, 100, 100);
 
         /*this.lightingInterval = setInterval(() => {
             let { y } = hemiLight.position;
@@ -117,6 +134,8 @@ export class Game {
         }, 600);*/
 
         game.scene.add(light);
+
+        document.body.addEventListener('mousedown', e => this.onMouseClick(e));
 
         this.sceneCreated = true;
     }

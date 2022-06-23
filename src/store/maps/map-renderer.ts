@@ -43,11 +43,11 @@ export class MapRenderer {
                 let height = heights[level][x][y];
 
                 if(height === undefined || height === null || isNaN(height)) {
-                    height = 0;
+                    height = 1;
                 }
 
-                colors.push(81, 92, 14);
-                vertices.push(x * 64, -height / 2, -(y * 64));
+                colors.push(25, 150, 6);
+                vertices.push(x * 64, -height / 4, -(y * 64));
             }
         }
 
@@ -70,7 +70,7 @@ export class MapRenderer {
             side: DoubleSide,
             // transparent: true,
             // opacity: 0.7,
-            // flatShading: true,
+            flatShading: true,
             // color: new Color(165, 42, 42),
             // wireframe: true,
         })];

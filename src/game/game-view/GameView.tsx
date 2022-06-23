@@ -3,15 +3,6 @@ import { createRef, useEffect, useState } from 'react';
 import Text from '../../store/fonts/Text';
 import { store } from '../../store';
 import { ModelRenderer } from '../../store/models/model-renderer';
-import { MapFileTranscoder } from '../../store/maps/map-file.transcoder';
-import {
-    BufferAttribute,
-    DirectionalLight,
-    DoubleSide,
-    Mesh,
-    MeshPhongMaterial,
-    PlaneBufferGeometry,
-} from 'three';
 import { game } from '../../common/game/game';
 import { MapRenderer } from '../../store/maps/map-renderer';
 
@@ -39,8 +30,8 @@ const GameView = () => {
             let renderedMaps: number = 0;
             let failedMaps: number = 0;
 
-            for (let x = -2; x <= 2; x++) {
-                for (let y = -2; y <= 2; y++) {
+            for (let x = -3; x <= 3; x++) {
+                for (let y = -3; y <= 3; y++) {
                     try {
                         const mapRenderer = new MapRenderer(50 + x, 50 + y, x, y);
                         await mapRenderer.loadMap();
