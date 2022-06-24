@@ -47,7 +47,7 @@ export class MapRenderer {
                 }
 
                 colors.push(25, 150, 6);
-                vertices.push(x * 64, -height / 4, -(y * 64));
+                vertices.push(x * 64, -height / 2, -(y * 64));
             }
         }
 
