@@ -3,13 +3,13 @@ import { Rs2Model } from './rs2-model';
 import { store } from '../store';
 
 
-export class Rs2ModelTranscoder {
+export class Rs2ModelDecoder {
 
     static readonly models = new Map<number, Rs2Model>();
 
     static async getModel(modelId: number): Promise<Rs2Model | null> {
-        if (Rs2ModelTranscoder.models.has(modelId)) {
-            return Rs2ModelTranscoder.models.get(modelId);
+        if (Rs2ModelDecoder.models.has(modelId)) {
+            return Rs2ModelDecoder.models.get(modelId);
         }
 
         const fileData = new ByteBuffer(await store.get(7, modelId));
@@ -301,7 +301,7 @@ export class Rs2ModelTranscoder {
             model.faceTypes = null;
         }
 
-        Rs2ModelTranscoder.models.set(modelId, model);
+        Rs2ModelDecoder.models.set(modelId, model);
         return model;
     }
 

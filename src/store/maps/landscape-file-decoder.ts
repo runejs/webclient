@@ -3,13 +3,13 @@ import { ByteBuffer } from '@runejs/common';
 import { store } from '../store';
 
 
-export class LandscapeFileTranscoder {
+export class LandscapeFileDecoder {
 
     static readonly landscapeFiles = new Map<string, LandscapeFile>();
 
     static async decode(landscapeFileName: string): Promise<LandscapeFile | null> {
-        if (LandscapeFileTranscoder.landscapeFiles.has(landscapeFileName)) {
-            return LandscapeFileTranscoder.landscapeFiles.get(landscapeFileName);
+        if (LandscapeFileDecoder.landscapeFiles.has(landscapeFileName)) {
+            return LandscapeFileDecoder.landscapeFiles.get(landscapeFileName);
         }
 
         const fileData = new ByteBuffer(await store.get(5, landscapeFileName));
@@ -20,26 +20,21 @@ export class LandscapeFileTranscoder {
         const landscapeFile = new LandscapeFile(landscapeFileName);
 
         let gameObjectKey = -1;
-        let objectKeyLoop = true;
 
-        while (objectKeyLoop) {
+        while (true) {
             const objectKeyAccumulator = fileData.get('smart_short');
 
             if (objectKeyAccumulator === 0) {
-                objectKeyLoop = false;
                 break;
             }
 
             gameObjectKey += objectKeyAccumulator;
             let objectCoords = 0;
 
-            let objectLocationsLoop = true;
-
-            while (objectLocationsLoop) {
+            while (true) {
                 const objectCoordsAccumulator = fileData.get('smart_short');
 
                 if (objectCoordsAccumulator === 0) {
-                    objectLocationsLoop = false;
                     break;
                 }
 
@@ -55,7 +50,7 @@ export class LandscapeFileTranscoder {
             }
         }
 
-        LandscapeFileTranscoder.landscapeFiles.set(landscapeFileName, landscapeFile);
+        LandscapeFileDecoder.landscapeFiles.set(landscapeFileName, landscapeFile);
         return landscapeFile;
     }
 

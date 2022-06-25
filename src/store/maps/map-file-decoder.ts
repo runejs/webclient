@@ -4,13 +4,13 @@ import { store } from '../store';
 import { perlinNoise } from './perlin-noise';
 
 
-export class MapFileTranscoder {
+export class MapFileDecoder {
 
     static readonly mapFiles = new Map<string, MapFile>();
 
     static async decode(mapFileName: string): Promise<MapFile | null> {
-        if (MapFileTranscoder.mapFiles.has(mapFileName)) {
-            return MapFileTranscoder.mapFiles.get(mapFileName);
+        if (MapFileDecoder.mapFiles.has(mapFileName)) {
+            return MapFileDecoder.mapFiles.get(mapFileName);
         }
 
         const fileData = new ByteBuffer(await store.get(5, mapFileName));
@@ -63,18 +63,15 @@ export class MapFileTranscoder {
                 for (let y = 0; y < 64; y++) {
                     mapFile.tiles.settings[level][x][y] = 0;
 
-                    let runLoop = true;
-
-                    while (runLoop) {
+                    while (true) {
                         const opcode = fileData.get('byte', 'u');
 
                         if (opcode === 0) {
                             if(level === 0) {
-                                mapFile.tiles.heights[0][x][y] = -MapFileTranscoder.calculateVertexHeight(offsetX + x + 932731, offsetY + 556238 + y) * 8;
+                                mapFile.tiles.heights[0][x][y] = MapFileDecoder.calculateVertexHeight(offsetX + x + 932731, offsetY + 556238 + y) * 8;
                             } else {
-                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] - 240;
+                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] + 240;
                             }
-                            runLoop = false;
                             break;
                         } else if (opcode === 1) {
                             let tileHeight = fileData.get('byte', 'u');
@@ -83,11 +80,10 @@ export class MapFileTranscoder {
                             }
 
                             if (level !== 0) {
-                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] - (8 * tileHeight);
+                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] + (8 * tileHeight);
                             } else {
-                                mapFile.tiles.heights[0][x][y] = 8 * -tileHeight;
+                                mapFile.tiles.heights[0][x][y] = 8 * tileHeight;
                             }
-                            runLoop = false;
                             break;
                         } else if (opcode <= 49) {
                             mapFile.tiles.overlayIds[level][x][y] = fileData.get('byte');
@@ -103,7 +99,7 @@ export class MapFileTranscoder {
             }
         }
 
-        MapFileTranscoder.mapFiles.set(mapFileName, mapFile);
+        MapFileDecoder.mapFiles.set(mapFileName, mapFile);
         return mapFile;
     }
 

@@ -1,4 +1,4 @@
-import { MapFileTranscoder } from './map-file.transcoder';
+import { MapFileDecoder } from './map-file-decoder';
 import { MapFile } from './map-file';
 import {
     BufferAttribute,
@@ -10,6 +10,9 @@ import {
 } from 'three';
 import { ModelRenderer } from '../models/model-renderer';
 import { game } from '../../common/game/game';
+import { Overlay } from './overlay';
+import { Underlay } from './underlay';
+import { ColorArray, GameColor, sameColor } from '../../common/color';
 
 
 // @todo use single plane geometry for all map drawing to utilize built-in tile smoothing
@@ -32,30 +35,64 @@ export class MapRenderer {
         this.drawOffsetY = drawOffsetY;
     }
 
-    render(): void {
+    async render(): Promise<void> {
         const vertices = [];
-        const colors = [];
-        const { heights } = this.mapFile.tiles;
+        const overlayColors = [];
+        const underlayColors = [];
+        const { heights, overlayIds, underlayIds } = this.mapFile.tiles;
         const level = 0;
+        let faceIndex = 0;
 
         for (let y = 63; y >= 0; y--) {
             for (let x = 0; x < 64; x++) {
+                const overlayId = overlayIds[level][x][y];
+                const underlayId = underlayIds[level][x][y];
+                let overlayColor: ColorArray = [ 0, 0, 0 ];
+                let underlayColor: ColorArray = [ 25, 150, 6 ];
+
+                try {
+                    const overlay = await Overlay.decode(overlayId);
+
+                    if(overlay?.color) {
+                        const { red, green, blue } = overlay.color;
+                        overlayColor = [ red, green, blue ];
+                    }
+                } catch (err) {
+                    // console.error(err);
+                }
+
+                try {
+                    const underlay = await Underlay.decode(underlayId);
+
+                    if(underlay?.color) {
+                        const { red, green, blue } = underlay.color;
+                        underlayColor = [ red, green, blue ];
+                    }
+                } catch (err) {
+                    // console.error(err);
+                }
+
+                overlayColors.push(...overlayColor);
+                underlayColors.push(...underlayColor);
+
                 let height = heights[level][x][y];
 
-                if(height === undefined || height === null || isNaN(height)) {
+                if (height === undefined || height === null || isNaN(height)) {
                     height = 1;
                 }
 
-                colors.push(25, 150, 6);
-                vertices.push(x * 64, -height / 2, -(y * 64));
+                vertices.push(x * 64, height / 3, -(y * 64));
+
+                faceIndex++;
             }
         }
 
         this.geometry.addGroup(0, vertices.length * 3, 0);
+
         this.planeMesh.geometry.setAttribute('position',
             new BufferAttribute(new Float32Array(vertices), 3));
         this.planeMesh.geometry.setAttribute('color',
-            new BufferAttribute(new Float32Array(colors), 3));
+            new BufferAttribute(new Float32Array(overlayColors), 3));
         this.planeMesh.geometry.computeVertexNormals();
     }
 
@@ -63,14 +100,12 @@ export class MapRenderer {
         this.geometry = new PlaneBufferGeometry(
             64, 64, 63, 63);
 
-        // this.geometry.rotateX( -Math.PI / 2);
-
         this.materials = [new MeshPhongMaterial({
             vertexColors: true,
             side: DoubleSide,
             // transparent: true,
             // opacity: 0.7,
-            flatShading: true,
+            // flatShading: true,
             // color: new Color(165, 42, 42),
             // wireframe: true,
         })];
@@ -90,7 +125,6 @@ export class MapRenderer {
         console.log(`Render ${this.mapName} @ ${planeDrawX},${planeDrawY}`);
 
         this.planeMesh.position.set(planeDrawX, 0, planeDrawY);
-        // this.planeMesh.rotation.set(0,-Math.PI / 2,0);
         this.planeMesh.scale.set(ModelRenderer.MODEL_SCALE, ModelRenderer.MODEL_SCALE, ModelRenderer.MODEL_SCALE);
 
         game.scene.add(this.planeMesh);
@@ -98,7 +132,7 @@ export class MapRenderer {
     }
 
     async loadMap(): Promise<void> {
-        this.mapFile = await MapFileTranscoder.decode(this.mapName);
+        this.mapFile = await MapFileDecoder.decode(this.mapName);
     }
 
     get mapName(): string {

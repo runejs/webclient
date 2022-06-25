@@ -89,7 +89,7 @@ export class ModelColor {
                 const greenUByte = green * 256.0;
                 const blueUByte = blue * 256.0;
                 let rgb = (redUByte << 16) + (greenUByte << 8) + blueUByte;
-                rgb = this.method707(rgb, arg0);
+                rgb = this.rgbToInt(rgb, arg0);
                 if (rgb === 0) {
                     rgb = 1;
                 }
@@ -103,7 +103,7 @@ export class ModelColor {
         return this.HSB_TO_RGB[hsb];
     }
 
-    static method707(rgb: number, arg1: number) {
+    static rgbToInt(rgb: number, arg1: number) {
         let red = (rgb >> 16) / 256.0;
         let green = ((rgb >> 8) & 0xff) / 256.0;
         let blue = (rgb & 0xff) / 256.0;

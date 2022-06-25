@@ -2,7 +2,7 @@ import { createRef, useEffect, useState } from 'react';
 import { WebGLRenderer } from 'three';
 import { ModelRenderer } from './model-renderer';
 import { Rs2Model } from './rs2-model';
-import { Rs2ModelTranscoder } from './rs2-model.transcoder';
+import { Rs2ModelDecoder } from './rs2-model-decoder';
 import { store } from '../store';
 
 let modelCanvasId: number = 0;

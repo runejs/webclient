@@ -7,7 +7,7 @@ import { gunzipSync } from 'browserify-zlib';
 import { Font, fontNames } from './fonts/font';
 import { createContext } from 'react';
 import { Rs2Model } from './models/rs2-model';
-import { Rs2ModelTranscoder } from './models/rs2-model.transcoder';
+import { Rs2ModelDecoder } from './models/rs2-model-decoder';
 
 
 export enum FileCompression {
@@ -44,7 +44,8 @@ export const bunzipSync = async (compressedFileData: ByteBuffer) => {
 
 export class Store {
 
-    private readonly files = new Map<number, Map<number | string, Buffer>>();
+    private readonly groups = new Map<number, Map<number | string, Buffer>>();
+    private readonly files = new Map<number, Map<number | string, Map<number, Buffer>>>();
     private _archiveConfig: { [key: string]: ArchiveConfig };
 
     decompress(compressedData: ByteBuffer | Buffer): ByteBuffer | null {
@@ -109,32 +110,66 @@ export class Store {
         return data ?? null;
     }
 
-    async get(archiveIndex: number, group: number | string): Promise<Buffer> {
-        if(!this.files.has(archiveIndex)) {
-            this.files.set(archiveIndex, new Map<number, Buffer>());
+    async get(archiveIndex: number, groupName: string): Promise<Buffer>;
+    async get(archiveIndex: number, groupIndex: number): Promise<Buffer>;
+    async get(archiveIndex: number, groupName: string, fileIndex: number): Promise<Buffer>;
+    async get(archiveIndex: number, groupIndex: number, fileIndex: number): Promise<Buffer>;
+    async get(archiveIndex: number, groupName: string, fileIndex?: number): Promise<Buffer>;
+    async get(archiveIndex: number, groupIndex: number, fileIndex?: number): Promise<Buffer>;
+    async get(archiveIndex: number, group: number | string, fileIndex?: number): Promise<Buffer> {
+        if(fileIndex !== undefined) {
+            if(!this.files.has(archiveIndex)) {
+                this.files.set(archiveIndex, new Map<number, Map<number, Buffer>>());
+            }
+
+            if(!this.files.get(archiveIndex).has(group)) {
+                this.files.get(archiveIndex).set(group, new Map<number, Buffer>());
+            }
+
+            if(this.files.get(archiveIndex).get(group).has(fileIndex)) {
+                return this.files.get(archiveIndex).get(group).get(fileIndex);
+            }
+
+            const response = await axios.get(
+                `/store/archives/${ archiveIndex }/groups/${ group }/files/${ fileIndex }`, {
+                    responseType: 'arraybuffer',
+                    headers: {
+                        'accept': 'arraybuffer'
+                    }
+                }
+            );
+
+            const compressedData = Buffer.from(response.data);
+            const fileData = gunzipSync(compressedData);
+            this.files.get(archiveIndex).get(group).set(fileIndex, fileData);
+            return fileData;
+        } else {
+            if(!this.groups.has(archiveIndex)) {
+                this.groups.set(archiveIndex, new Map<number, Buffer>());
+            }
+
+            if(this.groups.get(archiveIndex).has(group)) {
+                return this.groups.get(archiveIndex).get(group);
+            }
+
+            const response = await axios.get(
+                `/store/archives/${ archiveIndex }/groups/${ group }`, {
+                    responseType: 'arraybuffer',
+                    headers: {
+                        'accept': 'arraybuffer'
+                    }
+                }
+            );
+
+            const compressedData = Buffer.from(response.data);
+            const fileData = gunzipSync(compressedData);
+            this.groups.get(archiveIndex).set(group, fileData);
+            return fileData;
         }
-
-        if(this.files.get(archiveIndex).has(group)) {
-            return this.files.get(archiveIndex).get(group);
-        }
-
-        const response = await axios.get(
-          `/store/archives/${archiveIndex}/groups/${group}`, {
-              responseType: 'arraybuffer',
-              headers: {
-                  'accept': 'arraybuffer'
-              }
-          }
-        );
-
-        const compressedData = Buffer.from(response.data);
-        const fileData = gunzipSync(compressedData);
-        this.files.get(archiveIndex).set(group, fileData);
-        return fileData;
     }
 
     async getModel(modelId: number): Promise<Rs2Model> {
-        return await Rs2ModelTranscoder.getModel(modelId);
+        return await Rs2ModelDecoder.getModel(modelId);
     }
 
     async getSprite(spriteName: string, spriteIndex: number): Promise<SpriteState> {
@@ -158,7 +193,7 @@ export class Store {
         const response = await axios.get<{ [key: string]: ArchiveConfig }>(`/store/config`);
         this._archiveConfig = response.data;
         for(const [ , archiveConfig ] of Object.entries(this._archiveConfig)) {
-            this.files.set(archiveConfig.index, new Map<number, Buffer>());
+            this.groups.set(archiveConfig.index, new Map<number, Buffer>());
         }
         return this._archiveConfig;
     }

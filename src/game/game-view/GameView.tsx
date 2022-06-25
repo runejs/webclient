@@ -30,14 +30,20 @@ const GameView = () => {
             let renderedMaps: number = 0;
             let failedMaps: number = 0;
 
-            for (let x = -3; x <= 3; x++) {
-                for (let y = -3; y <= 3; y++) {
+            const renderMap = async (x: number, y: number, offsetX: number = 0, offsetY: number = 0) => {
+                const mapRenderer = new MapRenderer(x, y, offsetX, offsetY);
+                await mapRenderer.loadMap();
+                mapRenderer.createPlane();
+                await mapRenderer.render();
+                renderedMaps++;
+            };
+
+            // await renderMap(50, 50);
+
+            for (let x = -1; x <= 1; x++) {
+                for (let y = -1; y <= 1; y++) {
                     try {
-                        const mapRenderer = new MapRenderer(50 + x, 50 + y, x, y);
-                        await mapRenderer.loadMap();
-                        mapRenderer.createPlane();
-                        mapRenderer.render();
-                        renderedMaps++;
+                        await renderMap(50 + x, 50 + y, x, y);
                     } catch (err) {
                         console.error(err);
                         failedMaps++;
