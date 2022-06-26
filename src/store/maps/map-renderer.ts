@@ -39,6 +39,7 @@ export class MapRenderer {
         const vertices = [];
         const overlayColors = [];
         const underlayColors = [];
+        const colors = [];
         const { heights, overlayIds, underlayIds } = this.mapFile.tiles;
         const level = 0;
         let faceIndex = 0;
@@ -75,6 +76,8 @@ export class MapRenderer {
                 overlayColors.push(...overlayColor);
                 underlayColors.push(...underlayColor);
 
+                colors.push(...(overlayId === 0 ? underlayColor : overlayColor));
+
                 let height = heights[level][x][y];
 
                 if (height === undefined || height === null || isNaN(height)) {
@@ -92,7 +95,7 @@ export class MapRenderer {
         this.planeMesh.geometry.setAttribute('position',
             new BufferAttribute(new Float32Array(vertices), 3));
         this.planeMesh.geometry.setAttribute('color',
-            new BufferAttribute(new Float32Array(overlayColors), 3));
+            new BufferAttribute(new Float32Array(colors), 3));
         this.planeMesh.geometry.computeVertexNormals();
     }
 
@@ -116,8 +119,8 @@ export class MapRenderer {
         let planeDrawX = -52;
         let planeDrawY = 52;
 
-        const drawOffsetX = (this.drawOffsetX * 100);
-        const drawOffsetY = (this.drawOffsetY * 100);
+        const drawOffsetX = (this.drawOffsetX * 101);
+        const drawOffsetY = (this.drawOffsetY * 101);
 
         planeDrawX += drawOffsetX;
         planeDrawY -= drawOffsetY;

@@ -40,8 +40,8 @@ const GameView = () => {
 
             // await renderMap(50, 50);
 
-            for (let x = -1; x <= 1; x++) {
-                for (let y = -1; y <= 1; y++) {
+            for (let x = -3; x <= 3; x++) {
+                for (let y = -3; y <= 3; y++) {
                     try {
                         await renderMap(50 + x, 50 + y, x, y);
                     } catch (err) {
