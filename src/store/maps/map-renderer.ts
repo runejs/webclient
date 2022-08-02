@@ -1,19 +1,101 @@
-import { MapFileDecoder } from './map-file-decoder';
-import { MapFile } from './map-file';
+import { MapFileDecoder } from "./map-file-decoder";
+import { MapFile } from "./map-file";
 import {
     BufferAttribute,
+    BufferGeometry,
+    Color,
     DoubleSide,
     Material,
     Mesh,
+    MeshBasicMaterial,
     MeshPhongMaterial,
-    PlaneBufferGeometry
-} from 'three';
-import { ModelRenderer } from '../models/model-renderer';
-import { game } from '../../common/game/game';
-import { Overlay } from './overlay';
-import { Underlay } from './underlay';
-import { ColorArray, GameColor, sameColor } from '../../common/color';
+    PlaneBufferGeometry,
+} from "three";
+import { ModelRenderer } from "../models/model-renderer";
+import { game } from "../../common/game/game";
+import { Overlay } from "./overlay";
+import { Underlay } from "./underlay";
+import { ColorArray, GameColor, sameColor } from "../../common/color";
+import { TextureFileDecoder } from "./texture-file-decoder";
+import { store } from "../store";
+import { Scene } from "./scene";
+import { uploadScene } from "./scene/scene-uploader";
 
+export class MapRenderer {
+    mapFile: MapFile;
+    scene: Scene;
+    mapX: number;
+    mapY: number;
+    drawOffsetX: number = 0;
+    drawOffsetY: number = 0;
+
+    constructor(mapX: number, mapY: number, drawOffsetX = 0, drawOffsetY = 0) {
+        this.mapX = mapX;
+        this.mapY = mapY;
+        this.drawOffsetX = drawOffsetX;
+        this.drawOffsetY = drawOffsetY;
+    }
+
+    get mapName(): string {
+        return `m${this.mapX}_${this.mapY}`;
+    }
+
+    async loadMap(): Promise<void> {
+        this.mapFile = await MapFileDecoder.decode(this.mapName);
+        this.scene = await Scene.create();
+    }
+
+    async render() {
+        let planeDrawX = -52;
+        let planeDrawY = 52;
+
+        const drawOffsetX = this.drawOffsetX * 101;
+        const drawOffsetY = this.drawOffsetY * 101;
+
+        planeDrawX += drawOffsetX;
+        planeDrawY -= drawOffsetY;
+
+        const vertices: number[] = [];
+        const colors: number[] = [];
+
+        uploadScene(this.mapFile, this.scene, vertices, colors);
+
+        vertices.reverse();
+
+        const mappedColors = colors.map(c => c / 255);
+        mappedColors.reverse();
+
+        const geometry = new BufferGeometry();
+        geometry.setAttribute(
+            "position",
+            new BufferAttribute(new Float32Array(vertices), 3)
+        );
+        geometry.setAttribute(
+            "color",
+            new BufferAttribute(new Float32Array(mappedColors), 3)
+        );
+        geometry.computeVertexNormals();
+ 
+        const material = new MeshBasicMaterial({
+            vertexColors: true,
+            side: DoubleSide,
+            // wireframe: true,
+            // color: new Color(165, 42, 42),
+        });
+        
+        const planeMesh = new Mesh(geometry, material);
+        planeMesh.name = this.mapName;
+
+        planeMesh.position.set(planeDrawX, 0, planeDrawY);
+        planeMesh.scale.set(
+            ModelRenderer.MODEL_SCALE,
+            ModelRenderer.MODEL_SCALE,
+            ModelRenderer.MODEL_SCALE
+        );
+
+        game.scene.add(planeMesh);
+    }
+}
 
 // @todo use single plane geometry for all map drawing to utilize built-in tile smoothing
 //  between map regions

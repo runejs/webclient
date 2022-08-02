@@ -4,8 +4,7 @@ import Text from '../../store/fonts/Text';
 import { store } from '../../store';
 import { ModelRenderer } from '../../store/models/model-renderer';
 import { game } from '../../common/game/game';
-import { MapRenderer } from '../../store/maps/map-renderer';
-
+import { MapRenderer, oldMapRenderer } from '../../store/maps/map-renderer';
 
 const GameView = () => {
     const canvasRef = createRef<HTMLCanvasElement>();
@@ -33,23 +32,24 @@ const GameView = () => {
             const renderMap = async (x: number, y: number, offsetX: number = 0, offsetY: number = 0) => {
                 const mapRenderer = new MapRenderer(x, y, offsetX, offsetY);
                 await mapRenderer.loadMap();
-                mapRenderer.createPlane();
                 await mapRenderer.render();
                 renderedMaps++;
             };
 
             // await renderMap(50, 50);
 
-            for (let x = -3; x <= 3; x++) {
-                for (let y = -3; y <= 3; y++) {
+            const x = 0;
+            const y = 0;
+            // for (let x = -3; x <= 3; x++) {
+            //     for (let y = -3; y <= 3; y++) {
                     try {
                         await renderMap(50 + x, 50 + y, x, y);
                     } catch (err) {
                         console.error(err);
                         failedMaps++;
                     }
-                }
-            }
+            //     }
+            // }
 
             console.log(`Rendered ${renderedMaps}${failedMaps ? `, ${failedMaps} failed to load` : ''}`);
 
