@@ -99,7 +99,7 @@ export class MapRenderer {
 
 // @todo use single plane geometry for all map drawing to utilize built-in tile smoothing
 //  between map regions
-export class MapRenderer {
+export class oldMapRenderer {
 
     mapFile: MapFile;
     mapX: number;
