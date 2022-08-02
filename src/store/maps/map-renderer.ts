@@ -42,7 +42,7 @@ export class MapRenderer {
 
     async loadMap(): Promise<void> {
         this.mapFile = await MapFileDecoder.decode(this.mapName);
-        this.scene = await Scene.create();
+        this.scene = await Scene.create(this.mapFile);
     }
 
     async render() {
