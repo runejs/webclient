@@ -109,4 +109,8 @@ export class GameColor {
         }
     }
 
+    toColorArray(): ColorArray {
+        return [this.red, this.green, this.blue];
+    }
+
 }
