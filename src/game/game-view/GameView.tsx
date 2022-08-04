@@ -4,7 +4,7 @@ import Text from '../../store/fonts/Text';
 import { store } from '../../store';
 import { ModelRenderer } from '../../store/models/model-renderer';
 import { game } from '../../common/game/game';
-import { MapRenderer, oldMapRenderer } from '../../store/maps/map-renderer';
+import { MapRenderer, Terrain, Position } from '../../store/maps';
 
 const GameView = () => {
     const canvasRef = createRef<HTMLCanvasElement>();
@@ -26,32 +26,11 @@ const GameView = () => {
             modelRenderer.createRsModelMesh(model1);
             modelRenderer.createRsModelMesh(model2);
 
-            let renderedMaps: number = 0;
-            let failedMaps: number = 0;
+            const terrain = new Terrain(new Position(3230, 3234, 0));
+            await terrain.loadRegion();
 
-            const renderMap = async (x: number, y: number, offsetX: number = 0, offsetY: number = 0) => {
-                const mapRenderer = new MapRenderer(x, y, offsetX, offsetY);
-                await mapRenderer.loadMap();
-                await mapRenderer.render();
-                renderedMaps++;
-            };
-
-            // await renderMap(50, 50);
-
-            const x = 0;
-            const y = 0;
-            // for (let x = -3; x <= 3; x++) {
-            //     for (let y = -3; y <= 3; y++) {
-                    try {
-                        await renderMap(50 + x, 50 + y, x, y);
-                    } catch (err) {
-                        console.error(err);
-                        failedMaps++;
-                    }
-            //     }
-            // }
-
-            console.log(`Rendered ${renderedMaps}${failedMaps ? `, ${failedMaps} failed to load` : ''}`);
+            const mapRenderer = new MapRenderer(0, 0);
+            await mapRenderer.render(terrain);
 
             game.animateScene();
         };

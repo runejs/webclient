@@ -1,5 +1,5 @@
-import { iadd } from "../../common/math";
-import { perlinNoise } from "./perlin-noise";
+import { iadd } from "../../../common/math";
+import { perlinNoise } from "../perlin-noise";
 
 export function calculateVertexHeight(x: number, y: number): number {
     let vertexHeight = iadd(

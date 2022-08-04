@@ -1,8 +1,6 @@
 import { ByteBuffer } from '@runejs/common';
 import { MapFile } from './map-file';
 import { store } from '../store';
-import { perlinNoise } from './perlin-noise';
-
 
 export class MapFileDecoder {
 
@@ -19,8 +17,6 @@ export class MapFileDecoder {
         }
 
         const mapFile = new MapFile(mapFileName);
-        const offsetX = 0;
-        const offsetY = 0;
 
         const {
             heights,
@@ -68,9 +64,10 @@ export class MapFileDecoder {
 
                         if (opcode === 0) {
                             if(level === 0) {
-                                mapFile.tiles.heights[0][x][y] = MapFileDecoder.calculateVertexHeight(offsetX + x + 932731, offsetY + 556238 + y) * 8;
+                                // some maps don't have set heights for certain tiles, and just fall back on the perlin noise base map
+                                mapFile.tiles.heights[0][x][y] = null;
                             } else {
-                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] + 240;
+                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] - 240;
                             }
                             break;
                         } else if (opcode === 1) {
@@ -80,9 +77,9 @@ export class MapFileDecoder {
                             }
 
                             if (level !== 0) {
-                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] + (8 * tileHeight);
+                                mapFile.tiles.heights[level][x][y] = mapFile.tiles.heights[level - 1][x][y] - (8 * tileHeight);
                             } else {
-                                mapFile.tiles.heights[0][x][y] = 8 * tileHeight;
+                                mapFile.tiles.heights[0][x][y] = 8 * -tileHeight;
                             }
                             break;
                         } else if (opcode <= 49) {
@@ -101,21 +98,6 @@ export class MapFileDecoder {
 
         MapFileDecoder.mapFiles.set(mapFileName, mapFile);
         return mapFile;
-    }
-
-    static calculateVertexHeight(x: number, y: number): number {
-        let vertexHeight = (perlinNoise(x + 45365, y + 91923, 4) - 128 +
-            (perlinNoise(x + 10294, y + 37821, 2) - 128 >> 1) +
-            (perlinNoise(x, y, 1) - 128 >> 2));
-        vertexHeight = (vertexHeight * 0.3) + 35;
-
-        if (vertexHeight < 10) {
-            vertexHeight = 10;
-        } else if (vertexHeight > 60) {
-            vertexHeight = 60;
-        }
-
-        return vertexHeight;
     }
 
 }

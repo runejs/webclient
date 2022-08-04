@@ -1,10 +1,8 @@
 import { Node } from "../../../common/collection";
-import { DecorativeObject, GameObject, GroundItem, GroundObject, TileModel, TilePaint, WallObject } from "./child";
+import { DecorativeObject, GameObject, GroundItem, GroundObject, WallObject } from "./child";
 
 export class Tile extends Node {
     private bridge: Tile;
-    private underlay: TilePaint;
-    private overlay: TileModel;
     private wallObject: WallObject;
     private decorativeObject: DecorativeObject;
     private groundObject: GroundObject;
@@ -36,18 +34,6 @@ export class Tile extends Node {
 
     getBridge(): Tile {
         return this.bridge;
-    }
-
-    getTilePaint(): TilePaint {
-        return this.underlay;
-    }
-
-    setTilePaint(tilePaint: TilePaint): void {
-        this.underlay = tilePaint;
-    }
-
-    getTileModel(): TileModel {
-        return this.overlay;
     }
 
     getWallObject(): WallObject {

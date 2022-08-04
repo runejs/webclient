@@ -11,4 +11,9 @@ export const Constants = {
 	 * The width and length of the scene (13 chunks x 8 tiles).
 	 */
     SCENE_SIZE: 104,
+
+	/**
+	 * The width and length of a map tile (64x64).
+	 */
+	MAP_SIZE: 64,
 }
