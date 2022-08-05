@@ -5,6 +5,8 @@ import { store } from '../../store';
 import { ModelRenderer } from '../../store/models/model-renderer';
 import { game } from '../../common/game/game';
 import { MapRenderer, Terrain, Position } from '../../store/maps';
+import { Vector3 } from 'three';
+import { TextureFileDecoder } from '../../store/maps/texture-file-decoder';
 
 const GameView = () => {
     const canvasRef = createRef<HTMLCanvasElement>();
@@ -20,11 +22,13 @@ const GameView = () => {
 
         const testRenderer = async () => {
             const modelRenderer = new ModelRenderer();
-            const model1 = await store.getModel(2635);
-            const model2 = await store.getModel(363);
-            modelRenderer.removeRsModelMesh();
-            modelRenderer.createRsModelMesh(model1);
-            modelRenderer.createRsModelMesh(model2);
+            const phat = await store.getModel(2635);
+            modelRenderer.createRsModelMesh(phat);
+            // modelRenderer.removeRsModelMesh();
+            
+            const firecape = await store.getModel(9638);
+            const firecapeMesh = await modelRenderer.createRsModelMesh(firecape);
+            firecapeMesh.position.add(new Vector3(0, 10, 0));
 
             const terrain = new Terrain(new Position(3230, 3234, 0));
             await terrain.loadRegion();
