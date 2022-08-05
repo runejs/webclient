@@ -1,3 +1,5 @@
+const LOCAL_COORD_BITS = 7;
+
 export const Constants = {
 	/**
 	 * The max allowed plane by the game.
@@ -16,4 +18,6 @@ export const Constants = {
 	 * The width and length of a map tile (64x64).
 	 */
 	MAP_SIZE: 64,
+
+	LOCAL_TILE_SIZE: 1 << LOCAL_COORD_BITS, // 128 - size of a tile in local coordinates
 }

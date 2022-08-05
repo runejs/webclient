@@ -190,8 +190,6 @@ export class Terrain {
 
                     const tile = this.tiles[plane][x][y];
 
-                    console.log({ x, y, plane });
-
                     const vertexHeightSW = this.getTile(
                         plane,
                         x,

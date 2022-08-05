@@ -27,7 +27,6 @@ export function getSurroundingDataIds(
 
     for (let x = ((-6 + chunkX) / 8) | 0; x <= (6 + chunkX) / 8; x++) {
         for (let y = ((-6 + chunkY) / 8) | 0; (6 + chunkY) / 8 >= y; y++) {
-            console.log([x, y]);
             const coords = y + (x << 8);
 
             terrainIds.push(`m${x}_${y}`);
