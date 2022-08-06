@@ -1,3 +1,5 @@
+import { iadd } from "../../common/math";
+
 const cosineTable = new Array(2048);
 const sineTable = new Array(2048);
 
@@ -23,40 +25,70 @@ for (let i = 0; i < 2048; i++) {
     // cos(x) = the length of the adjacent side
     // sin(x) + cos(x) = r
 
-    sineTable[i] = (65536.0 * Math.sin(i * 0.0030679615));
-    cosineTable[i] = (65536.0 * Math.cos(i * 0.0030679615));
+    sineTable[i] = 65536.0 * Math.sin(i * 0.0030679615);
+    cosineTable[i] = 65536.0 * Math.cos(i * 0.0030679615);
 }
 
-
-const interpolate = (a: number, b: number, delta: number, scale: number): number => {
-    const i = 65536 + -cosineTable[1024 * delta / scale] >> 1;
-    return ((65536 + -i) * a >> 16) + (b * i >> 16);
+const interpolate = (
+    a: number,
+    b: number,
+    delta: number,
+    scale: number
+): number => {
+    const i = (65536 + -cosineTable[(1024 * delta) / scale]) >> 1;
+    return (((65536 + -i) * a) >> 16) + ((b * i) >> 16);
 };
 
-
-const randomNoise = (x: number, y: number): number => {
-    let i = 57 * y + x;
+function randomNoiseA(x: number, y: number): number {
+    let i = iadd(Math.imul(y, 57), x);
     i ^= i << 13;
-    const noise = (1376312589 + (i * i * 15731 + 789221) * i) & 0x7fffffff;
+
+    // console.log("result of randomNoiseA(" + x + "," + y + "): " + i);
+    return i;
+}
+
+function randomNoiseB(i: number): number {
+    let res = iadd(Math.imul(Math.imul(i, i), 15731), 789221);
+    // console.log("result of randomNoiseB(" + i + "): " + res);
+    return res;
+}
+
+export const randomNoise = (x: number, y: number): number => {
+    let i = randomNoiseA(x, y);
+    const noise = iadd(1376312589, Math.imul(randomNoiseB(i), i)) & 0x7fffffff;
+
     return (noise >> 19) & 0xff;
 };
 
+export const randomNoiseWeightedSum = (x: number, y: number): number => {
+    const dist2 = iadd(
+        iadd(
+            iadd(randomNoise(x - 1, y - 1), randomNoise(x + 1, y - 1)),
+            randomNoise(x - 1, y + 1)
+        ),
+        randomNoise(x + 1, y + 1)
+    );
 
-const randomNoiseWeightedSum = (x: number, y: number): number => {
-    const dist2 = randomNoise(x - 1, y - 1) + randomNoise(x + 1, y - 1) +
-        randomNoise(x - 1, y + 1) + randomNoise(x + 1, y + 1);
-    const dist1 = randomNoise(x - 1, y) + randomNoise(x + 1, y) +
-        randomNoise(x, y - 1) + randomNoise(x, y + 1);
+    const dist1 = iadd(
+        iadd(
+            iadd(randomNoise(x - 1, y), randomNoise(x + 1, y)),
+            randomNoise(x, y - 1)
+        ),
+        randomNoise(x, y + 1)
+    );
+
     const local = randomNoise(x, y);
-    return dist2 / 16 + dist1 / 8 + local / 4;
+    return iadd(
+        iadd(dist2 / 16, dist1 / 8),
+        local / 4
+    );
 };
-
 
 export const perlinNoise = (x: number, y: number, scale: number): number => {
     const scaledX = x / scale;
     const scaledY = y / scale;
-    const muX = x & scale - 1;
-    const muY = y & scale - 1;
+    const muX = x & (scale - 1);
+    const muY = y & (scale - 1);
     const a = randomNoiseWeightedSum(scaledX, scaledY);
     const b = randomNoiseWeightedSum(scaledX + 1, scaledY);
     const c = randomNoiseWeightedSum(scaledX, scaledY + 1);
@@ -65,4 +97,3 @@ export const perlinNoise = (x: number, y: number, scale: number): number => {
     const i2 = interpolate(c, d, muX, scale);
     return interpolate(i1, i2, muY, scale);
 };
-

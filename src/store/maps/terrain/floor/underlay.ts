@@ -1,6 +1,6 @@
 import { ByteBuffer } from '@runejs/common';
-import { store } from '../store';
-import { GameColor } from '../../common/color';
+import { store } from '../../../store';
+import { GameColor } from '../../../../common/color';
 
 
 export class Underlay {

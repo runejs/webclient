@@ -4,8 +4,9 @@ import Text from '../../store/fonts/Text';
 import { store } from '../../store';
 import { ModelRenderer } from '../../store/models/model-renderer';
 import { game } from '../../common/game/game';
-import { MapRenderer } from '../../store/maps/map-renderer';
-
+import { MapRenderer, Terrain, Position } from '../../store/maps';
+import { Vector3 } from 'three';
+import { TextureFileDecoder } from '../../store/maps/texture-file-decoder';
 
 const GameView = () => {
     const canvasRef = createRef<HTMLCanvasElement>();
@@ -21,37 +22,19 @@ const GameView = () => {
 
         const testRenderer = async () => {
             const modelRenderer = new ModelRenderer();
-            const model1 = await store.getModel(2635);
-            const model2 = await store.getModel(363);
-            modelRenderer.removeRsModelMesh();
-            modelRenderer.createRsModelMesh(model1);
-            modelRenderer.createRsModelMesh(model2);
+            const phat = await store.getModel(2635);
+            modelRenderer.createRsModelMesh(phat);
+            // modelRenderer.removeRsModelMesh();
+            
+            const firecape = await store.getModel(9638);
+            const firecapeMesh = await modelRenderer.createRsModelMesh(firecape);
+            firecapeMesh.position.add(new Vector3(0, 10, 0));
 
-            let renderedMaps: number = 0;
-            let failedMaps: number = 0;
+            const terrain = new Terrain(new Position(3230, 3234, 0));
+            await terrain.loadRegion();
 
-            const renderMap = async (x: number, y: number, offsetX: number = 0, offsetY: number = 0) => {
-                const mapRenderer = new MapRenderer(x, y, offsetX, offsetY);
-                await mapRenderer.loadMap();
-                mapRenderer.createPlane();
-                await mapRenderer.render();
-                renderedMaps++;
-            };
-
-            // await renderMap(50, 50);
-
-            for (let x = -3; x <= 3; x++) {
-                for (let y = -3; y <= 3; y++) {
-                    try {
-                        await renderMap(50 + x, 50 + y, x, y);
-                    } catch (err) {
-                        console.error(err);
-                        failedMaps++;
-                    }
-                }
-            }
-
-            console.log(`Rendered ${renderedMaps}${failedMaps ? `, ${failedMaps} failed to load` : ''}`);
+            const mapRenderer = new MapRenderer(0, 0);
+            await mapRenderer.render(terrain);
 
             game.animateScene();
         };

@@ -1,3 +1,5 @@
+const webpack = require('webpack'); 
+
 module.exports = function override (config, env) {
     console.log('override');
     let loaders = config.resolve;
@@ -14,6 +16,14 @@ module.exports = function override (config, env) {
         "constants": false,
         "process": false
     };
+
+    
+   config.plugins = (config.plugins || []).concat([ 
+        new webpack.ProvidePlugin({ 
+        process: 'process/browser', 
+    Buffer: ['buffer', 'Buffer'] 
+    }) 
+    ]) 
     
     return config;
 }

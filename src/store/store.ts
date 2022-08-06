@@ -8,6 +8,7 @@ import { Font, fontNames } from './fonts/font';
 import { createContext } from 'react';
 import { Rs2Model } from './models/rs2-model';
 import { Rs2ModelDecoder } from './models/rs2-model-decoder';
+import { TextureFileDecoder } from './maps/texture-file-decoder';
 
 
 export enum FileCompression {
@@ -174,6 +175,16 @@ export class Store {
 
     async getSprite(spriteName: string, spriteIndex: number): Promise<SpriteState> {
         return await SpriteTranscoder.getSprite(spriteName, spriteIndex);
+    }
+
+    async getTexture(textureId: number) {
+        const texture = await TextureFileDecoder.decode(textureId);
+
+        if (!texture) {
+            return null;
+        }
+
+        return texture;
     }
 
     async loadFonts(): Promise<Map<string, Font>> {

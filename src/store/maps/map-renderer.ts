@@ -1,145 +1,79 @@
-import { MapFileDecoder } from './map-file-decoder';
-import { MapFile } from './map-file';
 import {
     BufferAttribute,
+    BufferGeometry,
     DoubleSide,
-    Material,
     Mesh,
     MeshPhongMaterial,
-    PlaneBufferGeometry
-} from 'three';
-import { ModelRenderer } from '../models/model-renderer';
-import { game } from '../../common/game/game';
-import { Overlay } from './overlay';
-import { Underlay } from './underlay';
-import { ColorArray, GameColor, sameColor } from '../../common/color';
+    Vector3,
+} from "three";
+import { ModelRenderer } from "../models/model-renderer";
+import { game } from "../../common/game/game";
+import { uploadScene } from "./scene/scene-uploader";
+import { Terrain } from "./terrain";
 
-
-// @todo use single plane geometry for all map drawing to utilize built-in tile smoothing
-//  between map regions
 export class MapRenderer {
-
-    mapFile: MapFile;
-    mapX: number;
-    mapY: number;
     drawOffsetX: number = 0;
     drawOffsetY: number = 0;
-    geometry: PlaneBufferGeometry;
-    materials: Material[];
-    planeMesh: Mesh;
 
-    constructor(mapX: number, mapY: number, drawOffsetX = 0, drawOffsetY = 0) {
-        this.mapX = mapX;
-        this.mapY = mapY;
+    constructor(drawOffsetX = 0, drawOffsetY = 0) {
         this.drawOffsetX = drawOffsetX;
         this.drawOffsetY = drawOffsetY;
     }
 
-    async render(): Promise<void> {
-        const vertices = [];
-        const overlayColors = [];
-        const underlayColors = [];
-        const colors = [];
-        const { heights, overlayIds, underlayIds } = this.mapFile.tiles;
-        const level = 0;
-        let faceIndex = 0;
+    async render(terrain: Terrain) {
+        // shift the terrain by half a tile so that the center of the tile is at the origin
+        const halfTile = (128 / 2);
+        const drawOffsetToCentre = (128 * 51) - halfTile;
 
-        for (let y = 63; y >= 0; y--) {
-            for (let x = 0; x < 64; x++) {
-                const overlayId = overlayIds[level][x][y];
-                const underlayId = underlayIds[level][x][y];
-                let overlayColor: ColorArray = [ 0, 0, 0 ];
-                let underlayColor: ColorArray = [ 25, 150, 6 ];
+        let planeDrawX = -drawOffsetToCentre + this.drawOffsetX;
+        let planeDrawY = drawOffsetToCentre + this.drawOffsetY;
 
-                try {
-                    const overlay = await Overlay.decode(overlayId);
+        const vertices: number[] = [];
+        const colors: number[] = [];
 
-                    if(overlay?.color) {
-                        const { red, green, blue } = overlay.color;
-                        overlayColor = [ red, green, blue ];
-                    }
-                } catch (err) {
-                    // console.error(err);
-                }
+        uploadScene(terrain, vertices, colors);
 
-                try {
-                    const underlay = await Underlay.decode(underlayId);
+        vertices.reverse();
+        colors.reverse();
 
-                    if(underlay?.color) {
-                        const { red, green, blue } = underlay.color;
-                        underlayColor = [ red, green, blue ];
-                    }
-                } catch (err) {
-                    // console.error(err);
-                }
+        const geometry = new BufferGeometry();
+        geometry.setAttribute(
+            "position",
+            new BufferAttribute(new Float32Array(vertices), 3)
+        );
+        geometry.setAttribute(
+            "color",
+            new BufferAttribute(new Float32Array(colors), 3)
+        );
 
-                overlayColors.push(...overlayColor);
-                underlayColors.push(...underlayColor);
-
-                colors.push(...(overlayId === 0 ? underlayColor : overlayColor));
-
-                let height = heights[level][x][y];
-
-                if (height === undefined || height === null || isNaN(height)) {
-                    height = 1;
-                }
-
-                vertices.push(x * 64, height / 3, -(y * 64));
-
-                faceIndex++;
-            }
-        }
-
-        this.geometry.addGroup(0, vertices.length * 3, 0);
-
-        this.planeMesh.geometry.setAttribute('position',
-            new BufferAttribute(new Float32Array(vertices), 3));
-        this.planeMesh.geometry.setAttribute('color',
-            new BufferAttribute(new Float32Array(colors), 3));
-        this.planeMesh.geometry.computeVertexNormals();
-    }
-
-    createPlane(): void {
-        this.geometry = new PlaneBufferGeometry(
-            64, 64, 63, 63);
-
-        this.materials = [new MeshPhongMaterial({
+        geometry.computeVertexNormals();
+ 
+        const material = new MeshPhongMaterial({
             vertexColors: true,
             side: DoubleSide,
-            // transparent: true,
-            // opacity: 0.7,
-            // flatShading: true,
-            // color: new Color(165, 42, 42),
             // wireframe: true,
-        })];
+            // color: new Color(233, 165, 128),
+        });
+        
+        const planeMesh = new Mesh(geometry, material);
+        planeMesh.name = "Map";
 
-        this.planeMesh = new Mesh(this.geometry, this.materials);
-        this.planeMesh.name = this.mapName;
+        planeMesh.position.set(planeDrawX * ModelRenderer.MODEL_SCALE, 0, planeDrawY * ModelRenderer.MODEL_SCALE);
+        planeMesh.scale.set(
+            ModelRenderer.MODEL_SCALE,
+            ModelRenderer.MODEL_SCALE,
+            ModelRenderer.MODEL_SCALE
+        );
 
-        let planeDrawX = -52;
-        let planeDrawY = 52;
+        // rotate the map so that the coordinate system is correct
+        planeMesh.rotateOnAxis(new Vector3(0, 1, 0), degrees_to_radians(90));
 
-        const drawOffsetX = (this.drawOffsetX * 101);
-        const drawOffsetY = (this.drawOffsetY * 101);
-
-        planeDrawX += drawOffsetX;
-        planeDrawY -= drawOffsetY;
-
-        console.log(`Render ${this.mapName} @ ${planeDrawX},${planeDrawY}`);
-
-        this.planeMesh.position.set(planeDrawX, 0, planeDrawY);
-        this.planeMesh.scale.set(ModelRenderer.MODEL_SCALE, ModelRenderer.MODEL_SCALE, ModelRenderer.MODEL_SCALE);
-
-        game.scene.add(this.planeMesh);
-
+        game.scene.add(planeMesh);
     }
+}
 
-    async loadMap(): Promise<void> {
-        this.mapFile = await MapFileDecoder.decode(this.mapName);
-    }
-
-    get mapName(): string {
-        return `m${this.mapX}_${this.mapY}`;
-    }
-
+function degrees_to_radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
 }

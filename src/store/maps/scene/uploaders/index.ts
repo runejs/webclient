@@ -1,0 +1,1 @@
+export { uploadTilePaint } from "./tile-paint";

@@ -22,6 +22,7 @@
     "dexie-react-hooks": "^1.1.1",
     "http-proxy-middleware": "^2.0.6",
     "path-browserify": "^1.0.1",
+    "pngjs": "^6.0.0",
     "react": "^18.1.0",
     "react-app-rewired": "^2.2.1",
     "react-dom": "^18.1.0",
