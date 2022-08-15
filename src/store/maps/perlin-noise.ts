@@ -42,15 +42,11 @@ const interpolate = (
 function randomNoiseA(x: number, y: number): number {
     let i = iadd(Math.imul(y, 57), x);
     i ^= i << 13;
-
-    // console.log("result of randomNoiseA(" + x + "," + y + "): " + i);
     return i;
 }
 
 function randomNoiseB(i: number): number {
-    let res = iadd(Math.imul(Math.imul(i, i), 15731), 789221);
-    // console.log("result of randomNoiseB(" + i + "): " + res);
-    return res;
+    return iadd(Math.imul(Math.imul(i, i), 15731), 789221);
 }
 
 export const randomNoise = (x: number, y: number): number => {

@@ -7,8 +7,6 @@ export const sameColor = (rgbA: ColorArray, rgbB: ColorArray): boolean => {
 
 
 export function hueToRGB(p: number, q: number, h: number): number {
-    console.log("hueToRGB", p, q, h);
-
     if (h < 0) {
         h += 1;
     }

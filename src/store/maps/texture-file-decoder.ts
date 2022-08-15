@@ -60,8 +60,6 @@ export class TextureFileDecoder {
         const opaque = textureData.get("byte", "unsigned") === 1;
         const spriteCount = textureData.get("byte", "unsigned");
 
-        console.log({ rgb, opaque, spriteCount });
-
         const spriteIds: number[] = [];
 
         for (let i = 0; i < spriteCount; i++) {
@@ -80,7 +78,6 @@ export class TextureFileDecoder {
             for (let x = 0; x < spriteCount - 1; x++) {
                 // junk?
                 const junk = textureData.get("byte", "unsigned");
-                console.log({ junk });
             }
         }
 
@@ -92,8 +89,6 @@ export class TextureFileDecoder {
 
         const direction = textureData.get("byte", "unsigned");
         const speed = textureData.get("byte", "unsigned");
-
-        console.log({ direction, speed });
 
         const texture = new Texture(
             textureId,

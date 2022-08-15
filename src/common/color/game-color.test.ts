@@ -38,8 +38,6 @@ describe("RS2Color", () => {
 
                 const res = color.rgb;
 
-                console.log(res);
-
                 expect(res).toEqual([ 0x4b, 0x3e, 0x14 ]);
             });
         });
