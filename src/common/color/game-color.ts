@@ -6,111 +6,172 @@ export const sameColor = (rgbA: ColorArray, rgbB: ColorArray): boolean => {
 };
 
 
-export class GameColor {
+export function hueToRGB(p: number, q: number, h: number): number {
+    console.log("hueToRGB", p, q, h);
 
-    color: number;
-    red: number;
-    green: number;
-    blue: number;
-    hue: number;
-    saturation: number;
-    lightness: number;
-
-    constructor(color: number) {
-        this.color = color;
-        this.calculate();
+    if (h < 0) {
+        h += 1;
     }
 
-    calculate(): void {
-        this.red = 0xff & (this.color >> 16) & 0xff;
-        this.green = (this.color & 0xff2d) >> 8;
-        this.blue = this.color & 0xff;
-        console.log(this.color, `${this.red},${this.green},${this.blue}`);
+    if (h > 1) {
+        h -= 1;
+    }
 
-        const r = this.red / 256;
-        const g = this.green / 256;
-        const b = this.blue / 256;
+    if (6 * h < 1) {
+        // console.log("BRANCH A ", p + (q - p) * 6 * h);
+        return p + (q - p) * 6 * h;
+    }
 
-        let min = r;
-        let max = r;
+    if (2 * h < 1) {
+        // console.log("BRANCH B ", q);
+        return q;
+    }
+
+    if (3 * h < 2) {
+        // console.log("BRANCH C ", p + (q - p) * 6 * (2 / 3 - h));
+        return p + (q - p) * 6 * (2 / 3 - h);
+    }
+
+    // console.log("BRANCH D ", p);
+    return p;
+}
+
+export function hslIntToColorArray(hslInt: number): ColorArray {
+    const h = (hslInt >> 10) & 0x3f;
+    const s = (hslInt >> 7) & 7;
+    const l = hslInt & 0x7f;
+
+    return hslToColorArray(h, s, l);
+}
+
+// TODO investigate this further, from RuneColor
+export function hslToColorArray(h: number, s: number, l: number): ColorArray {
+    let r: number;
+    let g: number;
+    let b: number;
+
+    if (s === 0) {
+        b = l;
+        g = b;
+        r = g; // achromatic
+    } else {
+        let q =
+            l < 0.5
+                ? l * (1 + s)
+                : l +
+                  s -
+                  l * s;
+        let p = 2 * l - q;
+        r = hueToRGB(p, q, h + 1 / 3);
+        g = hueToRGB(p, q, h);
+        b = hueToRGB(p, q, h - 1 / 3);
+    }
+
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+export class RS2Color {
+    public readonly hue: number;
+    public readonly saturation: number;
+    public readonly lightness: number;
+    public readonly hueMultiplier: number;
+
+    constructor(
+        hue: number,
+        saturation: number,
+        lightness: number,
+        hueMultiplier: number
+    ) {
+        this.hue = hue;
+        this.saturation = saturation;
+        this.lightness = lightness;
+        this.hueMultiplier = hueMultiplier;
+    }
+
+    get rgb(): ColorArray {
+        return hslToColorArray(this.hue, this.saturation, this.lightness);
+    }
+
+    public static fromRGBInt(rgb: number): RS2Color {
+        const r = ((rgb >> 16) & 0xff) / 256;
+        const g = ((rgb >> 8) & 0xff) / 256;
+        const b = (rgb & 0xff) / 256;
+
+        let minC = r;
+        if (g < minC) {
+            minC = g;
+        }
+        if (b < minC) {
+            minC = b;
+        }
+
+        let maxC = r;
+        if (g > maxC) {
+            maxC = g;
+        }
+        if (b > maxC) {
+            maxC = b;
+        }
+
         let h = 0;
-        let l = 0;
+        let s = 0;
 
-        if (min > b) {
-            min = b;
-        }
-        if (g < min) {
-            min = g;
-        }
-        if(max < b) {
-            max = b;
-        }
-        if(max < g) {
-            max = g;
-        }
+        let l = (maxC + minC) / 2.0;
 
-        const avg = (max + min) / 2;
+        let outLightness = (l * 256.0) | 0;
 
-        if (max !== min) {
-            if (avg < 0.5) {
-                l = (max - min) / (max + min);
-            } else if (avg >= 0.5) {
-                l = (max - min) / ((2 - max) - min);
+        if (maxC !== minC) {
+            if (l < 0.5) {
+                s = (maxC - minC) / (maxC + minC);
             }
-
-            if (r === max) {
-                h = (b - g) / (max - min);
-            } else if (max === b) {
-                h = 2 + (g - r) / (max - min);
-            } else if (max === g) {
-                h = (r - b) / (max - min) + 4;
+            if (l >= 0.5) {
+                s = (-minC + maxC) / (-minC + (-maxC + 2.0));
+            }
+            if (r === maxC) {
+                h = (-b + g) / (-minC + maxC);
+            } else if (maxC === g) {
+                h = 2.0 + (b - r) / (maxC - minC);
+            } else if (maxC === b) {
+                h = (r - g) / (-minC + maxC) + 4.0;
             }
         }
 
-        h /= 6;
-        this.saturation = (avg * 256);
-        this.lightness = (l * 256);
-        let hueMultiplier;
+        h /= 6.0;
 
-        if (avg > 0.5) {
-            hueMultiplier = ((1 - avg) * l * 512);
-        } else {
-            hueMultiplier = (avg * l * 512);
-        }
-
-        if (hueMultiplier < 1) {
-            hueMultiplier = 1;
-        }
-
-        this.hue = (h * hueMultiplier);
-
-        if (this.hue >= 0) {
-            if (this.hue > 255) {
-                this.hue = 255;
+        if (outLightness >= 0) {
+            if (outLightness > 255) {
+                outLightness = 255;
             }
         } else {
-            this.hue = 0;
+            outLightness = 0;
         }
 
-        if (this.saturation >= 0) {
-            if (this.saturation > 255) {
-                this.saturation = 255;
+        let outHueMultiplier = 0;
+        let outSaturation = 0;
+
+        if (l > 0.5) {
+            outHueMultiplier = ((-l + 1.0) * s * 512.0) | 0;
+        } else {
+            outHueMultiplier = (l * s * 512.0) | 0;
+        }
+        outSaturation = (256.0 * s) | 0;
+        if (outHueMultiplier < 1) {
+            outHueMultiplier = 1;
+        }
+        const outHue = (h * outHueMultiplier) | 0;
+        if (outSaturation >= 0) {
+            if (outSaturation > 255) {
+                outSaturation = 255;
             }
         } else {
-            this.saturation = 0;
+            outSaturation = 0;
         }
 
-        if (this.lightness >= 0) {
-            if (this.lightness > 255) {
-                this.lightness = 255;
-            }
-        } else {
-            this.lightness = 0;
-        }
+        return new RS2Color(
+            outHue,
+            outSaturation,
+            outLightness,
+            outHueMultiplier
+        );
     }
-
-    toColorArray(): ColorArray {
-        return [this.red, this.green, this.blue];
-    }
-
 }

@@ -1,14 +1,14 @@
 import { ByteBuffer } from '@runejs/common';
 import { store } from '../../../store';
-import { GameColor } from '../../../../common/color';
+import { RS2Color } from '../../../../common/color';
 
 
 export class Overlay {
 
     static readonly overlays = new Map<number, Overlay>();
 
-    color: GameColor;
-    secondaryColor: GameColor;
+    color: RS2Color;
+    secondaryColor: RS2Color;
     texture: number = -1;
     hideOverlay: boolean = true;
 
@@ -42,14 +42,14 @@ export class Overlay {
                 }
 
                 if (opcode === 1) {
-                    overlay.color = new GameColor(fileData.get('int24'));
+                    overlay.color = RS2Color.fromRGBInt(fileData.get('int24'));
                     // console.log(`overlay(${overlayId}).color = `, overlay.color);
                 } else if (opcode === 2) {
                     overlay.texture = fileData.get('byte', 'u');
                 } else if (opcode === 5) {
                     overlay.hideOverlay = false;
                 } else if (opcode === 7) {
-                    overlay.secondaryColor = new GameColor(fileData.get('int24'));
+                    overlay.secondaryColor = RS2Color.fromRGBInt(fileData.get('int24'));
                     // console.log(`overlay(${overlayId}).color = `, overlay.secondaryColor);
                 }
             }

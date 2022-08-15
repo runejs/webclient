@@ -1,13 +1,18 @@
 import { ByteBuffer } from '@runejs/common';
 import { store } from '../../../store';
-import { GameColor } from '../../../../common/color';
+import { RS2Color } from '../../../../common/color';
 
 
 export class Underlay {
 
     static readonly underlays = new Map<number, Underlay>();
 
-    color: GameColor;
+    id: number;
+    color: RS2Color;
+
+    private constructor(id: number) {
+        this.id = id;
+    }
 
     static async decode(underlayId: number): Promise<Underlay | null> {
         if (underlayId === undefined || underlayId === null) {
@@ -29,7 +34,7 @@ export class Underlay {
                 return null;
             }
 
-            const underlay = new Underlay();
+            const underlay = new Underlay(underlayId);
 
             while (true) {
                 const opcode = fileData.get('byte', 'u');
@@ -39,8 +44,8 @@ export class Underlay {
                 }
 
                 if (opcode === 1) {
-                    underlay.color = new GameColor(fileData.get('int24'));
-                    // console.log(`underlay(${ underlayId }).color = `, underlay.color);
+                    const c = fileData.get('int24')
+                    underlay.color = RS2Color.fromRGBInt(c);
                 }
             }
 
