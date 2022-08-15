@@ -3,6 +3,11 @@ import { Terrain, TerrainTile } from "../terrain";
 import { Constants } from "./constants";
 import { uploadTileModel, uploadTilePaint } from "./uploaders";
 
+/**
+ * To enable TileModel rendering, set this to true
+ */
+const RENDER_TILE_MODELS = false;
+
 export async function uploadTerrain(
     terrain: Terrain,
     geometry: BufferGeometry,
@@ -68,15 +73,18 @@ async function upload(
         offset += length;
     }
 
-    // const tileModel = tile.getTileModel();
-    //
-    // if (tileModel) {
-    //     const { length, textureId } = uploadTileModel(terrain, tile, tileModel, vertices, colors, uvs);
-    //
-    //     geometry.addGroup(offset, length, textureId + 1);
-    //
-    //     offset += length;
-    // }
+    if (RENDER_TILE_MODELS) {
+        const tileModel = tile.getTileModel();
+        
+        if (tileModel) {
+            const { length, textureId } = uploadTileModel(terrain, tile, tileModel, vertices, colors, uvs);
+        
+            geometry.addGroup(offset, length, textureId + 1);
+        
+            offset += length;
+        }
+    }
+
 
     // TODO other items - or should they live elsewhere `GameWorld`?
     // model
