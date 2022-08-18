@@ -9,6 +9,7 @@ import { createContext } from 'react';
 import { Rs2Model } from './models/rs2-model';
 import { Rs2ModelDecoder } from './models/rs2-model-decoder';
 import { TextureFileDecoder } from './maps/texture-file-decoder';
+import { DoubleSide, Material, MeshPhongMaterial, TextureLoader } from 'three';
 
 
 export enum FileCompression {
@@ -177,14 +178,36 @@ export class Store {
         return await SpriteTranscoder.getSprite(spriteName, spriteIndex);
     }
 
-    async getTexture(textureId: number) {
+    private textureMaterials = new Map<number, Material>();
+
+    async getTextureMaterial(textureId: number): Promise<Material | null> {
+        const existingMaterial = this.textureMaterials.get(textureId);
+
+        if (existingMaterial) {
+            return existingMaterial;
+        }
+
         const texture = await TextureFileDecoder.decode(textureId);
 
         if (!texture) {
             return null;
         }
 
-        return texture;
+        const material = new MeshPhongMaterial({
+            side: DoubleSide,
+            vertexColors: true,
+        });
+        texture.toBase64().then((value) => {
+            material.map = new TextureLoader().load(
+                "data:image/png;base64," + value
+            );
+
+            material.needsUpdate = true;
+        });
+
+        this.textureMaterials.set(textureId, material);
+
+        return material;
     }
 
     async loadFonts(): Promise<Map<string, Font>> {

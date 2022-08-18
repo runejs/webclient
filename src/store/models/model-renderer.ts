@@ -150,12 +150,12 @@ export class ModelRenderer {
                 if (textureId !== -1) {
                     materialIndex = materialIndices[textureId];
                     if (materialIndex === undefined) {
-                        const texture = await store.getTexture(textureId);
+                        const material = await store.getTextureMaterial(textureId);
 
-                        if (texture) {
+                        if (material) {
                             materialIndices[textureId] = materialIndex =
                                 materials.length;
-                            materials.push(this.createTextureMaterial(texture));
+                            materials.push(material);
                         } else {
                             materialIndex = 0;
                         }

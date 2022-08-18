@@ -2,20 +2,32 @@ import { Terrain, TerrainTile, TilePaint } from "../../terrain";
 import { Constants } from "../constants";
 import { shouldSkipTileFromColor } from "../utils/skipTile";
 
-export function uploadTilePaint(
+/**
+ * Upload a `TilePaint` for a given `TerrainTile` to the 3D arrays
+ * 
+ * @param terrain The parent Terrain
+ * @param swTile The parent TerrainTile
+ * @param tilePaint The TilePaint to upload
+ * @param vertices The output vertex array
+ * @param colors The output color array
+ * @param uvs The output UV array
+ * @returns `length` as number of vertices added, `textureId` as the texture id for the tile
+ */
+export async function uploadTilePaint(
     terrain: Terrain,
     swTile: TerrainTile,
     tilePaint: TilePaint,
     vertices: number[],
     colors: number[],
-): number {
+    uvs: number[],
+) {
     const tileX = swTile.getX();
     const tileY = swTile.getY();
     const tileZ = swTile.getPlane();
 
     // looks like the RS client skips the outer edge of the region (I guess so it can match up heights from adjacent tiles without going out of bounds)
     if (tileX < 1 || tileX >= Constants.SCENE_SIZE - 1 || tileY < 1 || tileY >= Constants.SCENE_SIZE - 1) {
-        return 0;
+        return { length: 0, textureId: -1 };
     }
 
     const seTile = terrain.getTile(tileZ, tileX + 1, tileY);
@@ -33,47 +45,52 @@ export function uploadTilePaint(
     const { colorSW, colorSE, colorNE, colorNW } = tilePaint;
 
     if (shouldSkipTileFromColor(colorNE)) {
-        return 0;
+        return { length: 0, textureId: -1 };
     }
 
     // 0,0
-    const vertexDx = localX;
-    const vertexDy = localY;
-    const vertexDz = swHeight;
-    const c1 = colorSW;
+    const vertexSWx = localX;
+    const vertexSWy = localY;
+    const vertexSWz = swHeight;
 
     // 1,0
-    const vertexCx = localX + Constants.LOCAL_TILE_SIZE;
-    const vertexCy = localY;
-    const vertexCz = seHeight;
-    const c2 = colorSE;
+    const vertexSEx = localX + Constants.LOCAL_TILE_SIZE;
+    const vertexSEy = localY;
+    const vertexSEz = seHeight;
 
     // 1,1
-    const vertexAx = localX + Constants.LOCAL_TILE_SIZE;
-    const vertexAy = localY + Constants.LOCAL_TILE_SIZE;
-    const vertexAz = neHeight;
-    const c3 = colorNE;
+    const vertexNEx = localX + Constants.LOCAL_TILE_SIZE;
+    const vertexNEy = localY + Constants.LOCAL_TILE_SIZE;
+    const vertexNEz = neHeight;
 
     // 0,1
-    const vertexBx = localX;
-    const vertexBy = localY + Constants.LOCAL_TILE_SIZE;
-    const vertexBz = nwHeight;
-    const c4 = colorNW;
+    const vertexNWx = localX;
+    const vertexNWy = localY + Constants.LOCAL_TILE_SIZE;
+    const vertexNWz = nwHeight;
 
     // push the vertices as 2 triangles
-    vertices.push(vertexAx, vertexAz, vertexAy);
-    colors.push(...c3);
-    vertices.push(vertexBx, vertexBz, vertexBy);
-    colors.push(...c4);
-    vertices.push(vertexCx, vertexCz, vertexCy);
-    colors.push(...c2);
+    vertices.push(vertexNEx, vertexNEz, vertexNEy);
+    colors.push(...colorNE);
+    uvs.push(1, 0, 1);
+    vertices.push(vertexNWx, vertexNWz, vertexNWy);
+    colors.push(...colorNW);
+    uvs.push(0, 0, 1);
+    vertices.push(vertexSEx, vertexSEz, vertexSEy);
+    colors.push(...colorSE);
+    uvs.push(1, 0, 0);
 
-    vertices.push(vertexDx, vertexDz, vertexDy);
-    colors.push(...c1);
-    vertices.push(vertexCx, vertexCz, vertexCy);
-    colors.push(...c2);
-    vertices.push(vertexBx, vertexBz, vertexBy);
-    colors.push(...c4);
+    vertices.push(vertexSWx, vertexSWz, vertexSWy);
+    colors.push(...colorSW);
+    uvs.push(0, 0, 0);
+    vertices.push(vertexSEx, vertexSEz, vertexSEy);
+    colors.push(...colorSE);
+    uvs.push(1, 0, 0);
+    vertices.push(vertexNWx, vertexNWz, vertexNWy);
+    colors.push(...colorNW);
+    uvs.push(0, 0, 1);
 
-    return 6;
+    return {
+        length: 6,
+        textureId : tilePaint.textureId
+    };
 }

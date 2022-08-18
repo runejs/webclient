@@ -113,12 +113,12 @@ export class Game {
         this.scene.add(axis);
 
         const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 0.002);
-        hemiLight.color.setHSL(0.6, 0.75, 0.5);
-        hemiLight.groundColor.setHSL(0.095, 0.5, 0.5);
+        // hemiLight.color.setHSL(0.6, 0.75, 0.5);
+        // hemiLight.groundColor.setHSL(0.095, 0.5, 0.5);
         hemiLight.position.set(0, 500, 0);
         this.scene.add(hemiLight);
 
-        const light = new DirectionalLight(0xffffff, 0.001);
+        const light = new DirectionalLight(0xffffff, 0.003);
         // light.color.setHSL(0.6, 0.75, 0.5);
         light.position.set( -100, 100, 100);
 
