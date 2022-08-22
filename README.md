@@ -8,6 +8,5 @@ A browser-based game client written with TypeScript, React, and ThreeJS.
 
 This project is very much an early work-in-progress and is not able to be used to log into the game at this time. Please use the existing [Java Game Client](https://github.com/runejs/refactored-client-435) to log into the [RuneJS game server](https://github.com/runejs/server).
 
-Running the webclient requires the filestore HTTP server to first be running. Checkout the [`kiko/http` branch of the filestore repository](https://github.com/runejs/filestore/tree/kiko/http) and run the command `npm run http` to load the game cache HTTP server. A valid RuneJS JS5 game cache must be placed within the `packed/` folder of the filestore project to use the HTTP server, like so:
-
-![JS5 packed directory example](https://i.imgur.com/53dLQDa.png)
+Running the webclient requires the filestore HTTP server to first be running with a valid filestore index. 
+Checkout the [`kiko/file-system` branch of the filestore repository](https://github.com/runejs/filestore/tree/kiko/file-system) and run the command `npm run index -- --build 435` to index the 435 game cache, then run `npm run http:js5` to load the game cache HTTP server.
