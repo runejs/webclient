@@ -25,7 +25,7 @@ const GameView = () => {
             const phat = await store.getModel(2635);
             modelRenderer.createRsModelMesh(phat);
             // modelRenderer.removeRsModelMesh();
-            
+
             const firecape = await store.getModel(9638);
             const firecapeMesh = await modelRenderer.createRsModelMesh(firecape);
             firecapeMesh.position.add(new Vector3(0, 10, 0));

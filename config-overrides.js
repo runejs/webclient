@@ -1,7 +1,6 @@
-const webpack = require('webpack'); 
+const webpack = require('webpack');
 
 module.exports = function override (config, env) {
-    console.log('override');
     let loaders = config.resolve;
     loaders.fallback = {
         "fs": false,
@@ -10,20 +9,20 @@ module.exports = function override (config, env) {
         "https": false,
         "zlib": require.resolve("browserify-zlib") ,
         "path": require.resolve("path-browserify"),
+        "process": require.resolve("process/browser"),
         "stream": require.resolve("stream-browserify"),
         "util": require.resolve("util/"),
         "crypto": false,
-        "constants": false,
-        "process": false
+        "constants": false
     };
 
-    
-   config.plugins = (config.plugins || []).concat([ 
-        new webpack.ProvidePlugin({ 
-        process: 'process/browser', 
-    Buffer: ['buffer', 'Buffer'] 
-    }) 
-    ]) 
-    
+
+    config.plugins = (config.plugins || []).concat([
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+            process: 'process/browser',
+        })
+    ]);
+
     return config;
-}
+};
