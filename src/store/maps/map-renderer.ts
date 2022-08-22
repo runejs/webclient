@@ -51,16 +51,16 @@ export class MapRenderer {
         geometry.setAttribute(
             "color",
             new BufferAttribute(new Float32Array(colors), 3)
-        );        
+        );
         geometry.setAttribute(
             "uv",
             new BufferAttribute(new Float32Array(uvs), 2)
         );
 
         geometry.computeVertexNormals();
- 
+
         const materials = await this.createMaterials();
-        
+
         const planeMesh = new Mesh(geometry, materials);
         planeMesh.name = "Map";
 
@@ -79,11 +79,11 @@ export class MapRenderer {
 
     /**
      * Creates an array of materials to use
-     * 
+     *
      * 0 is the default material
      * 1-... are the game textures (textureId + 1)
-     * 
-     * @returns 
+     *
+     * @returns
      */
     async createMaterials() {
         const defaultMaterial = new MeshPhongMaterial({
@@ -107,8 +107,7 @@ export class MapRenderer {
     }
 }
 
-function degrees_to_radians(degrees)
-{
-  var pi = Math.PI;
-  return degrees * (pi/180);
+function degrees_to_radians(degrees) {
+    const pi = Math.PI;
+    return degrees * (pi / 180);
 }

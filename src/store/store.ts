@@ -2,14 +2,14 @@ import axios from 'axios';
 import { Buffer } from 'buffer';
 import { ArchiveConfig } from './archive-config';
 import { SpriteState, SpriteTranscoder } from './sprites/sprite-transcoder';
-import { ByteBuffer } from '@runejs/common';
-import { gunzipSync } from 'browserify-zlib';
+import { ByteBuffer, logger } from '@runejs/common';
 import { Font, fontNames } from './fonts/font';
 import { createContext } from 'react';
 import { Rs2Model } from './models/rs2-model';
 import { Rs2ModelDecoder } from './models/rs2-model-decoder';
 import { TextureFileDecoder } from './maps/texture-file-decoder';
 import { DoubleSide, Material, MeshPhongMaterial, TextureLoader } from 'three';
+import { Bzip2, Gzip } from './compress';
 
 
 export enum FileCompression {
@@ -29,88 +29,136 @@ export const getCompressionMethod = (compression: FileCompression | number): Com
 };
 
 
-const charCode = (letter: string) => letter.charCodeAt(0);
-export const bunzipSync = async (compressedFileData: ByteBuffer) => {
-    const buffer = Buffer.alloc(compressedFileData.length + 4);
-    compressedFileData.copy(buffer, 4);
-    buffer[0] = charCode('B');
-    buffer[1] = charCode('Z');
-    buffer[2] = charCode('h');
-    buffer[3] = charCode('1');
+interface FileDetails {
+    key: number;
+    name: string;
+    nameHash: number;
+}
 
-    // @TODO fix me!
-    // return new ByteBuffer(bz2.decompress(buffer));
-    return null;
+
+interface GroupDetails extends FileDetails {
+    childCount: number;
+    children: FileDetails[];
+}
+
+
+const decompress = (buffer: Buffer): Buffer | null => {
+    const compressedData = new ByteBuffer(buffer);
+
+    const compressionMethod = getCompressionMethod(compressedData.get('byte', 'unsigned'));
+    const compressedLength = compressedData.get('int', 'unsigned');
+
+    let data: Buffer;
+
+    if (compressionMethod === 'none') {
+        // Uncompressed file
+        data = Buffer.alloc(compressedLength);
+        compressedData.copy(data, 0, compressedData.readerIndex, compressedLength);
+        compressedData.readerIndex = (compressedData.readerIndex + compressedLength);
+    } else {
+        // BZIP or GZIP compressed file
+        const decompressedLength = compressedData.get('int', 'unsigned');
+        if (decompressedLength < 0) {
+            return null;
+        } else {
+            const fileData = new ByteBuffer(compressedLength);
+
+            compressedData.copy(fileData, 0, compressedData.readerIndex);
+
+            data = compressionMethod === 'bzip' ?
+                Bzip2.decompress(fileData) :
+                Gzip.decompress(fileData);
+        }
+    }
+
+    return data;
+};
+
+
+const decodeGroup = (buffer: Buffer, groupDetails: GroupDetails): Map<number, ByteBuffer> | null => {
+    if (groupDetails.childCount === 1) {
+        return null;
+    }
+
+    const data = new ByteBuffer(buffer);
+
+    data.readerIndex = (data.length - 1); // EOF - 1 byte
+
+    const stripeCount = data.get('byte', 'unsigned');
+
+    data.readerIndex = (data.length - 1 - stripeCount * groupDetails.childCount * 4); // Stripe data footer
+
+    if (data.readerIndex < 0) {
+        logger.error(`Invalid reader index of ${ data.readerIndex } for group ` +
+            `${ groupDetails.name || groupDetails.key }.`);
+        return null;
+    }
+
+    const fileSizeMap = new Map<number, number>();
+    const fileStripeMap = new Map<number, number[]>();
+    const fileDataMap = new Map<number, ByteBuffer>();
+    const files = new Map<number, FileDetails>();
+
+    // groupDetails.children.sort((a, b) => a.key - b.key);
+    for (const file of groupDetails.children) {
+        files.set(file.key, file);
+    }
+
+    for (const [ flatFileKey, ] of files) {
+        fileSizeMap.set(flatFileKey, 0);
+        fileStripeMap.set(flatFileKey, new Array(stripeCount));
+    }
+
+    for (let stripe = 0; stripe < stripeCount; stripe++) {
+        let currentLength = 0;
+
+        for (const [ flatFileKey, ] of files) {
+            const delta = data.get('int');
+            currentLength += delta;
+
+            const fileStripes = fileStripeMap.get(flatFileKey);
+            const size = fileSizeMap.get(flatFileKey) + currentLength;
+
+            fileStripes[stripe] = currentLength;
+            fileSizeMap.set(flatFileKey, size + currentLength);
+        }
+    }
+
+    for (const [ flatFileKey, ] of files) {
+        fileDataMap.set(flatFileKey, new ByteBuffer(fileSizeMap.get(flatFileKey)));
+    }
+
+    data.readerIndex = 0;
+
+    for (let stripe = 0; stripe < stripeCount; stripe++) {
+        for (const [ fileIndex, ] of files) {
+            let stripeLength = fileStripeMap.get(fileIndex)[stripe];
+            let sourceEnd: number = data.readerIndex + stripeLength;
+
+            if (data.readerIndex + stripeLength >= data.length) {
+                sourceEnd = data.length;
+                stripeLength = (data.readerIndex + stripeLength) - data.length;
+            }
+
+            const stripeData = data.getSlice(data.readerIndex, stripeLength);
+            const fileData = fileDataMap.get(fileIndex);
+
+            fileData.putBytes(stripeData);
+
+            data.readerIndex = sourceEnd;
+        }
+    }
+
+    return fileDataMap;
 };
 
 
 export class Store {
 
+    private readonly groupDetails = new Map<number, GroupDetails[]>();
     private readonly groups = new Map<number, Map<number | string, Buffer>>();
     private readonly files = new Map<number, Map<number | string, Map<number, Buffer>>>();
     private _archiveConfig: { [key: string]: ArchiveConfig };
-
-    decompress(compressedData: ByteBuffer | Buffer): ByteBuffer | null {
-        if (!compressedData?.length) {
-            return null;
-        }
-
-        compressedData = new ByteBuffer(compressedData);
-        compressedData.readerIndex = 0;
-
-        console.log(compressedData);
-
-        const compression = getCompressionMethod(compressedData.get('byte', 'unsigned'));
-        const compressedLength = compressedData.get('int', 'unsigned');
-        console.log(`compression = ${compression}, compressedLength = ${compressedLength}`);
-
-        const readerIndex = compressedData.readerIndex;
-
-        compressedData.readerIndex = readerIndex;
-        // @TODO xtea
-        let data: ByteBuffer;
-
-        if (compression === 'none') {
-            // Uncompressed file
-            data = new ByteBuffer(compressedLength);
-            compressedData.copy(data, 0, compressedData.readerIndex, compressedLength);
-            compressedData.readerIndex = (compressedData.readerIndex + compressedLength);
-        } else {
-            // BZIP or GZIP compressed file
-            const decompressedLength = compressedData.get('int', 'unsigned');
-            if (decompressedLength < 0) {
-                console.error(`Invalid decompressed file length: ${decompressedLength}`);
-            } else {
-                const decompressedData = new ByteBuffer(compression === 'bzip' ?
-                    decompressedLength : (compressedData.length - compressedData.readerIndex + 2));
-
-                compressedData.copy(decompressedData, 0, compressedData.readerIndex);
-
-                try {
-                    data = compression === 'bzip' ? bunzipSync(decompressedData) :
-                        gunzipSync(decompressedData);
-
-                    compressedData.readerIndex = compressedData.readerIndex + compressedLength;
-
-                    if (data.length !== decompressedLength) {
-                        console.error(`Compression length mismatch.`);
-                        data = null;
-                    }
-                } catch (error) {
-                    console.error(`Unable to decompress file: ${error?.message ?? error}`);
-                    data = null;
-                }
-            }
-        }
-
-        // Read the file footer, if it has one
-        if (compressedData.readable >= 2) {
-            // @TODO
-            const version = compressedData.get('short', 'unsigned');
-        }
-
-        return data ?? null;
-    }
 
     async get(archiveIndex: number, groupName: string): Promise<Buffer>;
     async get(archiveIndex: number, groupIndex: number): Promise<Buffer>;
@@ -119,40 +167,30 @@ export class Store {
     async get(archiveIndex: number, groupName: string, fileIndex?: number): Promise<Buffer>;
     async get(archiveIndex: number, groupIndex: number, fileIndex?: number): Promise<Buffer>;
     async get(archiveIndex: number, group: number | string, fileIndex?: number): Promise<Buffer> {
-        if(fileIndex !== undefined) {
-            if(!this.files.has(archiveIndex)) {
-                this.files.set(archiveIndex, new Map<number, Map<number, Buffer>>());
-            }
+        if (!this.groupDetails.has(archiveIndex)) {
+            const archiveGroupDetails = (await axios.get(`/store/archives/${ archiveIndex }/groups`)).data;
+            this.groupDetails.set(archiveIndex, archiveGroupDetails);
+        }
 
-            if(!this.files.get(archiveIndex).has(group)) {
-                this.files.get(archiveIndex).set(group, new Map<number, Buffer>());
-            }
-
-            if(this.files.get(archiveIndex).get(group).has(fileIndex)) {
-                return this.files.get(archiveIndex).get(group).get(fileIndex);
-            }
-
-            const response = await axios.get(
-                `/store/archives/${ archiveIndex }/groups/${ group }/files/${ fileIndex }`, {
-                    responseType: 'arraybuffer',
-                    headers: {
-                        'accept': 'arraybuffer'
-                    }
+        const groupDetails = this.groupDetails.get(archiveIndex)
+            .find(g => {
+                if (typeof group === 'number' || /^\d+$/.test(group)) {
+                    return g.key === Number(group);
+                } else {
+                    return g.name === group;
                 }
-            );
+            });
 
-            const compressedData = Buffer.from(response.data);
-            const fileData = gunzipSync(compressedData);
-            this.files.get(archiveIndex).get(group).set(fileIndex, fileData);
-            return fileData;
-        } else {
-            if(!this.groups.has(archiveIndex)) {
-                this.groups.set(archiveIndex, new Map<number, Buffer>());
-            }
+        if (!groupDetails) {
+            logger.error(`Group details not found for group ${group} in archive ${archiveIndex}`);
+        }
 
-            if(this.groups.get(archiveIndex).has(group)) {
-                return this.groups.get(archiveIndex).get(group);
-            }
+        if (!this.groups.has(archiveIndex)) {
+            this.groups.set(archiveIndex, new Map<number, Buffer>());
+        }
+
+        if (!this.groups.get(archiveIndex).has(group)) {
+            logger.info(`Requesting archive = ${ archiveIndex }, group = ${ group }`);
 
             const response = await axios.get(
                 `/store/archives/${ archiveIndex }/groups/${ group }`, {
@@ -164,9 +202,30 @@ export class Store {
             );
 
             const compressedData = Buffer.from(response.data);
-            const fileData = gunzipSync(compressedData);
+            const fileData = decompress(compressedData);
             this.groups.get(archiveIndex).set(group, fileData);
-            return fileData;
+        }
+
+        if (fileIndex !== undefined) {
+            if (!this.files.has(archiveIndex)) {
+                this.files.set(archiveIndex, new Map<number, Map<number, Buffer>>());
+            }
+
+            if (!this.files.get(archiveIndex).has(group)) {
+                this.files.get(archiveIndex).set(group, new Map<number, Buffer>());
+
+                const fileDataMap = decodeGroup(this.groups.get(archiveIndex).get(group), groupDetails);
+
+                if (fileDataMap?.size) {
+                    for (const [ fileIndex, fileData ] of fileDataMap) {
+                        this.files.get(archiveIndex).get(group).set(fileIndex, fileData?.toNodeBuffer() || null);
+                    }
+                }
+            }
+
+            return this.files.get(archiveIndex).get(group).get(fileIndex);
+        } else {
+            return this.groups.get(archiveIndex).get(group);
         }
     }
 
@@ -211,7 +270,7 @@ export class Store {
     }
 
     async loadFonts(): Promise<Map<string, Font>> {
-        for(const fontName of fontNames) {
+        for (const fontName of fontNames) {
             await new Font(fontName).load();
         }
 
@@ -226,7 +285,7 @@ export class Store {
     async getArchiveConfig(): Promise<{ [key: string]: ArchiveConfig }> {
         const response = await axios.get<{ [key: string]: ArchiveConfig }>(`/store/config`);
         this._archiveConfig = response.data;
-        for(const [ , archiveConfig ] of Object.entries(this._archiveConfig)) {
+        for (const [ , archiveConfig ] of Object.entries(this._archiveConfig)) {
             this.groups.set(archiveConfig.index, new Map<number, Buffer>());
         }
         return this._archiveConfig;
