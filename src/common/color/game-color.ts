@@ -90,6 +90,59 @@ export class RS2Color {
         return hslToColorArray(this.hue, this.saturation, this.lightness);
     }
 
+    public static rs2hsbToRgb(RS2HSB: number): ColorArray {
+        const decode_hue = (RS2HSB >> 10) & 63;
+        const decode_saturation = (RS2HSB >> 7) & 7;
+        const decode_brightness = RS2HSB & 127;
+        return RS2Color.hsbToRgb(decode_hue / 63, decode_saturation / 7, decode_brightness / 127);
+    }
+
+    public static hsbToRgb(hue: number, saturation: number, brightness: number): ColorArray {
+        let r = 0, g = 0, b = 0;
+        if (saturation === 0) {
+            r = g = b = (brightness * 255 + 0.5);
+        } else {
+            let h = (hue - Math.floor(hue)) * 6;
+            let f = h - Math.floor(h);
+            let p = brightness * (1.0 - saturation);
+            let q = brightness * (1.0 - saturation * f);
+            let t = brightness * (1.0 - (saturation * (1 - f)));
+            switch (h) {
+            case 0:
+                r = (brightness * 255 + 0.5);
+                g = (t * 255 + 0.5);
+                b = (p * 255 + 0.5);
+                break;
+            case 1:
+                r = (q * 255 + 0.5);
+                g = (brightness * 255 + 0.5);
+                b = (p * 255 + 0.5);
+                break;
+            case 2:
+                r = (p * 255 + 0.5);
+                g = (brightness * 255 + 0.5);
+                b = (t * 255 + 0.5);
+                break;
+            case 3:
+                r = (p * 255 + 0.5);
+                g = (q * 255 + 0.5);
+                b = (brightness * 255 + 0.5);
+                break;
+            case 4:
+                r = (t * 255 + 0.5);
+                g = (p * 255 + 0.5);
+                b = (brightness * 255 + 0.5);
+                break;
+            case 5:
+                r = (brightness * 255 + 0.5);
+                g = (p * 255 + 0.5);
+                b = (q * 255 + 0.5);
+                break;
+            }
+        }
+        return [ r, g, b ];
+    }
+
     public static fromRGBInt(rgb: number): RS2Color {
         const r = ((rgb >> 16) & 0xff) / 256;
         const g = ((rgb >> 8) & 0xff) / 256;

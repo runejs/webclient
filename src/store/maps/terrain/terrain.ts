@@ -8,7 +8,7 @@ import { Constants } from "../scene/constants";
 import { TerrainTile } from "./terrain-tile";
 import { getSurroundingDataIds } from "../id";
 import { iadd } from "../../../common/math";
-import { ColorArray } from "../../../common/color";
+import { ColorArray, RS2Color } from "../../../common/color";
 import { shouldSkipTileFromColor } from "../scene/utils/skipTile";
 
 export class Terrain {
@@ -488,11 +488,11 @@ export class Terrain {
                             function getUnderlayColorArr(lightIntensity: number) {
                                 return hslToRgbArray(mixLightnessSignedHSL(overlayColor, lightIntensity));
                             }
-                                
+
                             function getUnderlayColor(lightIntensity: number) {
                                 return mixLightnessSignedHSL(overlayColor, lightIntensity);
                             }
-                            
+
                             function getOverlayColor(lightIntensity: number) {
                                 return mixLightnessHSL(overlayColor, lightIntensity);
                             }
@@ -653,5 +653,6 @@ function hslToRgbArray(hsl: number) {
         ((l / 127) * 255) | 0,
     ];
 
+    // return RS2Color.rs2hsbToRgb(hsl);
     return rgb;
 }
