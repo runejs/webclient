@@ -160,6 +160,8 @@ export class Store {
     private readonly files = new Map<number, Map<number | string, Map<number, Buffer>>>();
     private _archiveConfig: { [key: string]: ArchiveConfig };
 
+    public readonly build = 435;
+
     async get(archiveIndex: number, groupName: string): Promise<Buffer>;
     async get(archiveIndex: number, groupIndex: number): Promise<Buffer>;
     async get(archiveIndex: number, groupName: string, fileIndex: number): Promise<Buffer>;
@@ -168,7 +170,7 @@ export class Store {
     async get(archiveIndex: number, groupIndex: number, fileIndex?: number): Promise<Buffer>;
     async get(archiveIndex: number, group: number | string, fileIndex?: number): Promise<Buffer> {
         if (!this.groupDetails.has(archiveIndex)) {
-            const archiveGroupDetails = (await axios.get(`/store/archives/${ archiveIndex }/groups`)).data;
+            const archiveGroupDetails = (await axios.get(`/store/js5/${this.build}/archives/${ archiveIndex }/groups`)).data;
             this.groupDetails.set(archiveIndex, archiveGroupDetails);
         }
 
@@ -185,6 +187,10 @@ export class Store {
             logger.error(`Group details not found for group ${group} in archive ${archiveIndex}`);
         }
 
+        if (groupDetails.childCount > 1 && !groupDetails.children?.length) {
+            groupDetails.children = (await axios.get(`/store/js5/${ this.build }/archives/${ archiveIndex }/groups/${ groupDetails.key }/files`)).data;
+        }
+
         if (!this.groups.has(archiveIndex)) {
             this.groups.set(archiveIndex, new Map<number, Buffer>());
         }
@@ -193,7 +199,7 @@ export class Store {
             logger.info(`Requesting archive = ${ archiveIndex }, group = ${ group }`);
 
             const response = await axios.get(
-                `/store/archives/${ archiveIndex }/groups/${ group }`, {
+                `/store/js5/${this.build}/archives/${ archiveIndex }/groups/${ group }/data`, {
                     responseType: 'arraybuffer',
                     headers: {
                         'accept': 'arraybuffer'
@@ -283,7 +289,7 @@ export class Store {
     }
 
     async getArchiveConfig(): Promise<{ [key: string]: ArchiveConfig }> {
-        const response = await axios.get<{ [key: string]: ArchiveConfig }>(`/store/config`);
+        const response = await axios.get<{ [key: string]: ArchiveConfig }>(`/store/js5/${this.build}/archive-config`);
         this._archiveConfig = response.data;
         for (const [ , archiveConfig ] of Object.entries(this._archiveConfig)) {
             this.groups.set(archiveConfig.index, new Map<number, Buffer>());
